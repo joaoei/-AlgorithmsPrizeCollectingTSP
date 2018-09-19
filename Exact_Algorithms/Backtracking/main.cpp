@@ -34,6 +34,7 @@ int main (int argc, char *argv[]) {
 	  - Executar algoritmo 
 	  - Determinar tempo gasto para executar o algoritmo
 	  - Exibir resultado (Arestas, o bonus e a penalidade)
-
+	*/
+	
  	return 0;
 }
