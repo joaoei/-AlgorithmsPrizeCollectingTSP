@@ -136,6 +136,7 @@ int main (int argc, char *argv[]) {
 		for (int i = 0; i < r.v.size() - 1; i++) {
 			std::cout << "(" << r.v[i] << "," << r.v[i+1] << ") ";	
 		}
+		
 		std::cout << "\n";	
 
 		std::cout << "Prize min: " << p_min << "\n";
