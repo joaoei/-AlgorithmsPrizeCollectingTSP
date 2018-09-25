@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <chrono>
 
@@ -13,10 +14,10 @@ struct solution {
 };
 
 v_tuple calc_prize_and_penaltys (
-	std::vector<int> prizes, 
-	std::vector<int> penaltys, 
-	std::vector<std::vector<int>> travel_cost,
-	std::vector<int> result_p) {
+	const std::vector<int> &prizes, 
+	const std::vector<int> &penaltys, 
+	const std::vector<std::vector<int>> &travel_cost,
+	const std::vector<int> &result_p) {
 
 	int sum_penaltys = 0;
 	int sum_prizes   = 0;
@@ -59,12 +60,12 @@ bool is_on_list (
 }
 
 solution backtracking_alg (
-	std::vector<int> prizes, 
-	std::vector<int> penaltys, 
-	std::vector<std::vector<int>> travel_cost,
-	std::vector<int> result_p,
-	solution result,
-	double prize_min) {
+	const std::vector<int> &prizes, 
+	const std::vector<int> &penaltys, 
+	const std::vector<std::vector<int>> &travel_cost,
+	const std::vector<int> &result_p,
+	const solution &result,
+	const double &prize_min) {
 
 	solution s = result;
 	v_tuple r = calc_prize_and_penaltys(prizes, penaltys, travel_cost, result_p);
@@ -95,6 +96,10 @@ solution backtracking_alg (
 }
 
 int main (int argc, char *argv[]) {
+
+	if (argc > 0) {
+		// TO DO
+	}
 
 	std::vector<int> p (4, 0);
 	p[0] = 0;
