@@ -97,8 +97,24 @@ solution backtracking_alg (
 
 int main (int argc, char *argv[]) {
 
-	if (argc > 0) {
-		// TO DO
+	int num_vertices = 0;
+	if (argc > 1) {
+		std::string file_name = argv[1];
+		if (file_name[0] == 'v') {
+			// file name format is "v10.txt"
+			// number of vertices is the number in file name plus 1
+			if (file_name[1] >= '0' && file_name[1] <= '9') {
+				int last_index = 1;
+				while (file_name[last_index] >= '0' && file_name[last_index] <= '9') {
+					last_index++;
+				}
+				std::string num_v_string = file_name.substr(1, last_index - 1);
+				num_vertices = std::stoi(num_v_string) + 1;
+				std::cout << num_vertices << std::endl;
+			}
+		} else if (true) {
+
+		}
 	}
 
 	std::vector<int> p (4, 0);
