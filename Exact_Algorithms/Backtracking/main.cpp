@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <chrono>
+#include <algorithm>
 
 struct v_tuple {
   int prize;
@@ -96,11 +97,41 @@ solution backtracking_alg (
     return s; 
 }
 
+static inline std::string &ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+            std::not1(std::ptr_fun<int, int>(std::isspace))));
+    return s;
+}
+
 int main (int argc, char *argv[]) {
 
     int num_vertices = 0;
     if (argc > 1) {
         std::string file_name = argv[1];
+		std::ifstream infile(file_name);
+        if(!infile) {
+            std::cout << "Unable to open file!\n";
+            return EXIT_FAILURE;
+        }
+
+		// std::string line;
+  //       int x;
+  //       std::getline(infile, line);
+  //       infile >> x;
+
+		// std::istringstream vertices_line(line);
+		// int x;
+		// while (vertices_line >> x) {
+		// 	std::cout << x << "\n";
+		// }
+
+		/*
+		for (int i = 0; i < num_vertices; ++i) {
+			
+			vertices_line >> x;
+			std::cout << x << "\n";
+		}
+
         if (file_name[0] == 'v') {
             // file name format is "v10.txt"
             // number of vertices is the number in file name plus 1 
@@ -130,9 +161,8 @@ int main (int argc, char *argv[]) {
         } else if (true) {
 
         }
+		*/
     }
-    
-    std::cout << "ERMINOU" << std::endl;
 
     std::vector<int> p (4, 0);
     p[0] = 0;
