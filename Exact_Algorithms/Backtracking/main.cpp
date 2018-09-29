@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 #include <algorithm>
+#include <climits>
 
 struct v_tuple {
   int prize;
@@ -105,63 +106,75 @@ static inline std::string &ltrim(std::string &s) {
 
 int main (int argc, char *argv[]) {
 
-    int num_vertices = 0;
     if (argc > 1) {
         std::string file_name = argv[1];
-		std::ifstream infile(file_name);
+        std::ifstream infile(file_name);
         if(!infile) {
             std::cout << "Unable to open file!\n";
             return EXIT_FAILURE;
         }
 
-		// std::string line;
-  //       int x;
-  //       std::getline(infile, line);
-  //       infile >> x;
-
-		// std::istringstream vertices_line(line);
-		// int x;
-		// while (vertices_line >> x) {
-		// 	std::cout << x << "\n";
-		// }
-
-		/*
-		for (int i = 0; i < num_vertices; ++i) {
-			
-			vertices_line >> x;
-			std::cout << x << "\n";
-		}
-
-        if (file_name[0] == 'v') {
-            // file name format is "v10.txt"
-            // number of vertices is the number in file name plus 1 
-            int last_index = 1;
-            while (file_name[last_index] >= '0' && file_name[last_index] <= '9') {
-                last_index++;
-            }
-            std::string num_v_string = file_name.substr(1, last_index - 1);
-            num_vertices = std::stoi(num_v_string) + 1;
-
-            // Reading file info
-            std::ifstream infile(file_name);
-            std::string line;
-            // Eat up 3 lines to get to prizes
-            std::getline(infile, line);
-            std::getline(infile, line);
-            std::getline(infile, line);
-            std::getline(infile, line);
-            std::cout << "ERMINOU" << std::endl;
-            std::istringstream vertices_line(line);
-            for (int i = 0; i < num_vertices; ++i) {
-                int x;
-                vertices_line >> x;
-                std::cout << x << "\n";
-            }
-            // std::cout << num_vertices << std::endl;
-        } else if (true) {
-
+        // Pega o nome do arquivo sem diretórios
+        std::string file_name_no_path = file_name;
+        size_t i = file_name.rfind('/', file_name.length());
+        if (i != std::string::npos) {
+          file_name_no_path = file_name.substr(i+1, file_name.length() - i);
         }
-		*/
+
+        std::string line;
+        if (file_name_no_path[0] == 'v') { // instancias-1
+            std::getline(infile, line);
+            std::getline(infile, line);
+        }
+
+        int num_vertices = 0;
+        // Ler valores dos prêmios
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::istringstream prizes_line(line);
+        int prize;
+        std::vector<int> prizes;
+        while (prizes_line >> prize) {
+            prizes.push_back(prize);
+        }
+        num_vertices = prizes.size();
+
+        // Ler valores das penalidades
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::istringstream penalties_line(line);
+        int penalty; // valor do vértice
+        std::vector<int> penalties;
+        while (penalties_line >> penalty) {
+            penalties.push_back(penalty);
+        }
+
+        if (prizes.size() != penalties.size()) {
+            std::cout << ">>> Invalid instance: number of prizes and penalties don't match!" << '\n';
+            return EXIT_FAILURE;
+        }
+
+        // Ler valores dos vértices
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::vector<std::vector<int>> edges(num_vertices);
+        int edge; // valor do vértice
+        int curr_num = 0;
+        for (int i = 0; i < num_vertices; ++i) {
+            std::getline(infile, line);
+            std::istringstream edges_line(line);
+            while(edges_line >> edge) {
+                edges[i].push_back(edge);
+            }
+            if (i > 0) {
+                if (curr_num != edges[i].size()) {
+                    std::cout << ">>> Invalid instance: incorrect number of edges!" << '\n';
+                    return EXIT_FAILURE;
+                }
+            }
+            curr_num = edges[i].size();
+        }
     }
 
     std::vector<int> p (4, 0);
