@@ -12,6 +12,24 @@ struct solution {
 	v_tuple values;
 };
 
+bool is_on_list (
+	int element,
+	std::vector<int> v) {
+
+	bool is_element = false;
+	int i = 0;
+
+	while ( !is_element && (i < v.size()) ) {
+		if (element == v[i]) {
+			is_element = true;
+		}
+
+		i++;
+	}
+
+	return is_element;
+}
+
 v_tuple calc_prize_and_penaltys (
 	std::vector<int> prizes, 
 	std::vector<int> penaltys, 
@@ -38,24 +56,6 @@ v_tuple calc_prize_and_penaltys (
 	value.penalty = sum_penaltys;
 
 	return value;
-}
-
-bool is_on_list (
-	int element,
-	std::vector<int> v) {
-
-	bool is_element = false;
-	int i = 0;
-
-	while ( !is_element && (i < v.size()) ) {
-		if (element == v[i]) {
-			is_element = true;
-		}
-
-		i++;
-	}
-
-	return is_element;
 }
 
 solution backtracking_alg (
@@ -96,25 +96,28 @@ solution backtracking_alg (
 
 int main (int argc, char *argv[]) {
 
+	//Prêmios
 	std::vector<int> p (4, 0);
 	p[0] = 0;
 	p[1] = 39;
 	p[2] = 1;
 	p[3] = 62;
 
+	//Penalidades
 	std::vector<int> p2 (4, 0);
 	p2[0] = 100000;
 	p2[1] = 548;
 	p2[2] = 475;
 	p2[3] = 6;
 
+	//Custo de trajeto do vertice i ao j
 	std::vector<std::vector<int>> t (4, std::vector<int>(4, 0) );
 	t[0][0] = 0;   t[0][1] = 66;  t[0][2] = 820; t[0][3] = 889;
 	t[1][0] = 66;  t[1][1] = 0;   t[1][2] = 505; t[1][3] = 56;
 	t[2][0] = 820; t[2][1] = 505; t[2][2] = 0;   t[2][3] = 987;
 	t[3][0] = 889; t[3][1] = 56;  t[3][2] = 987; t[3][3] = 0;
 
-
+	//Cria vetor com 2 valores 0 para a solução parcial
 	std::vector<int> rp (2, 0);
 
 	solution r1;
@@ -124,7 +127,7 @@ int main (int argc, char *argv[]) {
 	r1.v = rp;
 	r1.values = values;
 
-	double alfa = 0.5;
+	double alfa = 0.3;
 	double p_min = 102*alfa;
 	solution r = backtracking_alg(p, p2, t, rp, r1, p_min);
 
