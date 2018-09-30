@@ -98,19 +98,13 @@ solution backtracking_alg (
     return s; 
 }
 
-static inline std::string &ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-            std::not1(std::ptr_fun<int, int>(std::isspace))));
-    return s;
-}
-
 int main (int argc, char *argv[]) {
 
     if (argc > 1) {
         std::string file_name = argv[1];
         std::ifstream infile(file_name);
         if(!infile) {
-            std::cout << "Unable to open file!\n";
+            std::cout << ">>> Unable to open file!\n";
             return EXIT_FAILURE;
         }
 
@@ -175,8 +169,45 @@ int main (int argc, char *argv[]) {
             }
             curr_num = edges[i].size();
         }
+
+        ///////////////////////////////////////////////////////
+        std::vector<int> rp (2, 0);
+
+        solution r1;
+        v_tuple values;
+        values.prize   = prizes[0];
+        values.penalty = penalties[0];
+        r1.v = rp;
+        r1.values = values;
+
+        double alfa = 0.5;
+        int prizes_sum = 0;
+        for (int i = 0; i < prizes.size(); ++i) {
+            prizes_sum += prizes[i];
+        }
+        double p_min = alfa * prizes_sum;
+        solution r = backtracking_alg(prizes, penalties, edges, rp, r1, p_min);
+
+        if (r.values.prize == prizes[0] && r.values.penalty == penalties[0]) {
+            std::cout << "\nSem resolução para o problema";
+        } else {
+            std::cout << "\nResult: ";
+            
+            for (int i = 0; i < r.v.size() - 1; i++) {
+                std::cout << "(" << r.v[i] << "," << r.v[i+1] << ") ";  
+            }
+            
+            std::cout << "\n";  
+
+            std::cout << "Prize min: " << p_min << "\n";
+            std::cout << "Prize: " << r.values.prize << " | Penaltys: " << r.values.penalty << "\n";
+        }
+    } else {
+        std::cout << "Please, inform the input file name on execution!\n";
+        return EXIT_FAILURE
     }
 
+    /*
     std::vector<int> p (4, 0);
     p[0] = 0;
     p[1] = 39;
@@ -223,6 +254,7 @@ int main (int argc, char *argv[]) {
         std::cout << "Prize min: " << p_min << "\n";
         std::cout << "Prize: " << r.values.prize << " | Penaltys: " << r.values.penalty << "\n";
     }
+    */
 
     /*
       Receber parametros de qual instancia usar (10, 20, 30a, 30b, 30c, 50a, 50b, 100a, 100b, 
