@@ -65,7 +65,7 @@ v_tuple calc_prize_and_penalties (
 bool comp_desc (int i, int j) { return (i>j); }
 
 int calc_prize_inf (
-    std::vector<int> &prizes, 
+    std::vector<int> prizes, 
     const std::vector<int> &result_p,
     int num_vertices) {
 
