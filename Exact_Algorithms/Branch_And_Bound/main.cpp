@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <chrono>
 #include <algorithm>
@@ -9,295 +11,347 @@ struct v_tuple {
 };
 
 struct solution {
-	std::vector<int> v;
-	v_tuple values;
+    std::vector<int> v;
+    v_tuple values;
 };
 
 bool is_on_list (
-	int element,
-	std::vector<int> v) {
+    int element,
+    const std::vector<int> &v) {
 
-	bool is_element = false;
-	int i = 0;
+    bool is_element = false;
+    int i = 0;
 
-	while ( !is_element && (i < v.size()) ) {
-		if (element == v[i]) {
-			is_element = true;
-		}
+    while ( !is_element && (i < v.size()) ) {
+        if (element == v[i]) {
+            is_element = true;
+        }
 
-		i++;
-	}
+        i++;
+    }
 
-	return is_element;
+    return is_element;
 }
 
-v_tuple calc_prize_and_penaltys (
-	std::vector<int> prizes, 
-	std::vector<int> penaltys, 
-	std::vector<std::vector<int>> travel_cost,
-	std::vector<int> result_p) 
+v_tuple calc_prize_and_penalties (
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const std::vector<int> &result_p) 
 {
 
-	int sum_penaltys = 0;
-	int sum_prizes   = 0;
+    int sum_penalties = 0;
+    int sum_prizes   = 0;
 
-	//Soma todas as penalidades
-	for(int i = 0; i < penaltys.size(); i++) {
-		sum_penaltys += penaltys[i];
-	}
+    //Soma todas as penalidades
+    for(int i = 0; i < penalties.size(); i++) {
+        sum_penalties += penalties[i];
+    }
 
-	for(int j = 0; j < result_p.size() - 1; j++) {
-		//Soma premio do no na posição j em result
-		sum_prizes   += prizes[result_p[j]];
-		sum_penaltys -= penaltys[result_p[j]];
-		sum_penaltys += travel_cost[ result_p[j] ][ result_p[j+1] ];
-	}
+    for(int j = 0; j < result_p.size() - 1; j++) {
+        //Soma premio do no na posição j em result
+        sum_prizes   += prizes[result_p[j]];
+        sum_penalties -= penalties[result_p[j]];
+        sum_penalties += travel_cost[ result_p[j] ][ result_p[j+1] ];
+    }
 
-	v_tuple value;
-	value.prize = sum_prizes;
-	value.penalty = sum_penaltys;
+    v_tuple value;
+    value.prize = sum_prizes;
+    value.penalty = sum_penalties;
 
-	return value;
+    return value;
 }
 
 bool comp_desc (int i, int j) { return (i>j); }
 
 int calc_prize_inf (
-	std::vector<int> prizes, 
-	std::vector<int> result_p,
-	int num_vertices) {
+    std::vector<int> &prizes, 
+    const std::vector<int> &result_p,
+    int num_vertices) {
 
-	int prize = 0;
-	for (int i = 0; i < result_p.size(); i++) {
-			prize += prizes[ result_p[i] ];
-	}
+    int prize = 0;
+    for (int i = 0; i < result_p.size(); i++) {
+            prize += prizes[ result_p[i] ];
+    }
 
-	for (int i = 0; i < result_p.size(); i++) {
-		prizes[result_p[i]] = 0;
-	}	
+    for (int i = 0; i < result_p.size(); i++) {
+        prizes[result_p[i]] = 0;
+    }   
 
-	std::sort(prizes.begin(), prizes.end(), comp_desc);
+    std::sort(prizes.begin(), prizes.end(), comp_desc);
 
-	int count = 0;
-	int i = 0;
-	
-	while (count < num_vertices) {
-		prize += prizes[i];
-		count++;
-		i++;
-	}
+    int count = 0;
+    int i = 0;
+    
+    while (count < num_vertices) {
+        prize += prizes[i];
+        count++;
+        i++;
+    }
 
-	return prize;
+    return prize;
 }
 
 int calc_penalty_inf (
-	std::vector<int> penaltys, 
-	std::vector<std::vector<int>> travel_cost,
-	std::vector<int> result_p,
-	int num_vertices) 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const std::vector<int> &result_p,
+    int num_vertices) 
 {
 
-	int sum_penaltys = 0;
-	for (int j = 0; j < penaltys.size(); j++) {
-		if (!is_on_list(j, result_p)) {
-			sum_penaltys += penaltys[j];
-		}
-	}
-	// Soma os custos das arestas
-	int min;
-	int sum_travel = 0;
-	for (int i = 0; i < result_p.size(); i++) {
-		if (i == result_p.size()-1) {
-			// Acha a aresta de menor valor e soma nas penalidades
-			min = 10000;
-			for (int j = 0; j < travel_cost[i].size(); j++) {
-				if (travel_cost[ result_p[i] ][j] < min && travel_cost[ result_p[i] ][j] > 0) {
-					min = travel_cost[ result_p[i] ][j];
-				}
-			}
-			sum_travel += min;
-		} else {
-			sum_travel += travel_cost[result_p[i]][result_p[i+1]];
-		}
-	}
+    int sum_penalties = 0;
+    for (int j = 0; j < penalties.size(); j++) {
+        if (!is_on_list(j, result_p)) {
+            sum_penalties += penalties[j];
+        }
+    }
+    // Soma os custos das arestas
+    int min;
+    int sum_travel = 0;
+    for (int i = 0; i < result_p.size(); i++) {
+        if (i == result_p.size()-1) {
+            // Acha a aresta de menor valor e soma nas penalidades
+            min = 10000;
+            for (int j = 0; j < travel_cost[i].size(); j++) {
+                if (travel_cost[ result_p[i] ][j] < min && travel_cost[ result_p[i] ][j] > 0) {
+                    min = travel_cost[ result_p[i] ][j];
+                }
+            }
+            sum_travel += min;
+        } else {
+            sum_travel += travel_cost[result_p[i]][result_p[i+1]];
+        }
+    }
 
-	//Custo de inclusão
-	std::vector<int> inclusion_cost (1, 10000); 
-	for (int i = 1; i < penaltys.size(); i++) {
-		if (is_on_list(i, result_p)) {
-			inclusion_cost.push_back(10000);
-		} else {
-			min = 10000;
-			for (int j = 0; j < travel_cost[i].size(); j++) {
-				if (travel_cost[i][j] < min && travel_cost[i][j] > 0) {
-					min = travel_cost[i][j];
-				}
-			}
-			inclusion_cost.push_back( (min - penaltys[i]) );
-		}
-	}
+    //Custo de inclusão
+    std::vector<int> inclusion_cost (1, 10000); 
+    for (int i = 1; i < penalties.size(); i++) {
+        if (is_on_list(i, result_p)) {
+            inclusion_cost.push_back(10000);
+        } else {
+            min = 10000;
+            for (int j = 0; j < travel_cost[i].size(); j++) {
+                if (travel_cost[i][j] < min && travel_cost[i][j] > 0) {
+                    min = travel_cost[i][j];
+                }
+            }
+            inclusion_cost.push_back( (min - penalties[i]) );
+        }
+    }
 
-	//Ordenar pelos menores custos
-	std::sort(inclusion_cost.begin(), inclusion_cost.end());
+    //Ordenar pelos menores custos
+    std::sort(inclusion_cost.begin(), inclusion_cost.end());
 
-	//Adicionar os n menores na soma dos custos
-	int count = 0;
-	int i = 0;
-	int sum = sum_penaltys + sum_travel;
-	
-	while (count < num_vertices) {
-		sum += inclusion_cost[i];
-		count++;
-		i++;
-	}
+    //Adicionar os n menores na soma dos custos
+    int count = 0;
+    int i = 0;
+    int sum = sum_penalties + sum_travel;
+    
+    while (count < num_vertices) {
+        sum += inclusion_cost[i];
+        count++;
+        i++;
+    }
 
-	//Retornar penalidades
-	return sum; 
+    //Retornar penalidades
+    return sum; 
 }
 
 solution branch_and_bound_alg (
-	std::vector<int> prizes, 
-	std::vector<int> penaltys, 
-	std::vector<std::vector<int>> travel_cost,
-	std::vector<int> result_p,
-	solution up_limit,
-	int num_vertices,
-	double prize_min) {
-	solution s;
+    std::vector<int> prizes, 
+    std::vector<int> penalties, 
+    std::vector<std::vector<int>> travel_cost,
+    std::vector<int> result_p,
+    solution up_limit,
+    int num_vertices,
+    double prize_min) {
+    solution s;
 
-	//calcular a up limit
-	if (num_vertices == prizes.size()-1) 
-	{
-		//Cria vetor com com vertices (0, 1, ..., N, 0)
-		std::vector<int> up_limit_v (1, 0);
-		for (int i = 1; i < prizes.size(); i++) {
-			up_limit_v.push_back(i);
-		}
-		up_limit_v.push_back(0);
+    //calcular a up limit
+    if (num_vertices == prizes.size()-1) 
+    {
+        //Cria vetor com com vertices (0, 1, ..., N, 0)
+        std::vector<int> up_limit_v (1, 0);
+        for (int i = 1; i < prizes.size(); i++) {
+            up_limit_v.push_back(i);
+        }
+        up_limit_v.push_back(0);
 
-		//Calcula o prêmio e as penalidades dessa solução
-		v_tuple up_limit_values = calc_prize_and_penaltys(prizes, penaltys, travel_cost, up_limit_v);
+        //Calcula o prêmio e as penalidades dessa solução
+        v_tuple up_limit_values = calc_prize_and_penalties(prizes, penalties, travel_cost, up_limit_v);
 
-		//Cria uma solução que será o limite superior
-		solution limit;
-		limit.v = up_limit_v;
-		limit.values = up_limit_values;
-		s = limit;
-	} else {
-		s = up_limit;
-	}
-	
-	if (num_vertices == 0) {
-		result_p.push_back(0);
+        //Cria uma solução que será o limite superior
+        solution limit;
+        limit.v = up_limit_v;
+        limit.values = up_limit_values;
+        s = limit;
+    } else {
+        s = up_limit;
+    }
+    
+    if (num_vertices == 0) {
+        result_p.push_back(0);
 
-		v_tuple r = calc_prize_and_penaltys(prizes, penaltys, travel_cost, result_p);
-	
-		/*
-		  Se o premio acumulado for maior ou igual que o premio minimo e 
-		  a penalidade for menor que a penalidade da solução atual
-		*/
-		if (r.prize >= prize_min && r.penalty < s.values.penalty) {
-			s.v = result_p;
-			s.values = r;
-		}
-	} else {
-		int c = (num_vertices == prizes.size()-1 ) ? 1 : num_vertices;
-		for (int i = c; i <= num_vertices; i++) {
-			int prize_inf = calc_prize_inf(prizes, result_p, i);
-			
-			if (prize_inf >= prize_min) {
-				//Calcular penaltys inferior
-				int penaltys_inf = calc_penalty_inf(penaltys, travel_cost, result_p, i);
+        v_tuple r = calc_prize_and_penalties(prizes, penalties, travel_cost, result_p);
+    
+        /*
+          Se o premio acumulado for maior ou igual que o premio minimo e 
+          a penalidade for menor que a penalidade da solução atual
+        */
+        if (r.prize >= prize_min && r.penalty < s.values.penalty) {
+            s.v = result_p;
+            s.values = r;
+        }
+    } else {
+        int c = (num_vertices == prizes.size()-1 ) ? 1 : num_vertices;
+        for (int i = c; i <= num_vertices; i++) {
+            int prize_inf = calc_prize_inf(prizes, result_p, i);
+            
+            if (prize_inf >= prize_min) {
+                //Calcular penalties inferior
+                int penalties_inf = calc_penalty_inf(penalties, travel_cost, result_p, i);
 
-				if (penaltys_inf < s.values.penalty) {
-					for (int j = 0; j < prizes.size(); j++) {
-						if (!is_on_list(j, result_p)) {
-							std::vector<int> r = result_p;
-							r.push_back(j);
-						
-							s = branch_and_bound_alg(
-								prizes, penaltys, travel_cost,
-								r, s, i - 1, prize_min
-							);
-						}
-					}
-				}
-			}
-			
-		}
-	}
+                if (penalties_inf < s.values.penalty) {
+                    for (int j = 0; j < prizes.size(); j++) {
+                        if (!is_on_list(j, result_p)) {
+                            std::vector<int> r = result_p;
+                            r.push_back(j);
+                        
+                            s = branch_and_bound_alg(
+                                prizes, penalties, travel_cost,
+                                r, s, i - 1, prize_min
+                            );
+                        }
+                    }
+                }
+            }
+            
+        }
+    }
 
-	return s;
+    return s;
 
 }
 
 int main (int argc, char *argv[]) {
 
-	//Prêmios
-	std::vector<int> p (4, 0);
-	p[0] = 0;
-	p[1] = 39;
-	p[2] = 1;
-	p[3] = 62;
+    if (argc > 1) {
+        std::string file_name = argv[1];
+        std::ifstream infile(file_name);
+        if(!infile) {
+            std::cout << ">>> Unable to open file!\n";
+            return EXIT_FAILURE;
+        }
 
-	//Penalidades
-	std::vector<int> p2 (4, 0);
-	p2[0] = 100000;
-	p2[1] = 548;
-	p2[2] = 475;
-	p2[3] = 6;
+        // Pega o nome do arquivo sem diretórios
+        std::string file_name_no_path = file_name;
+        size_t i = file_name.rfind('/', file_name.length());
+        if (i != std::string::npos) {
+          file_name_no_path = file_name.substr(i+1, file_name.length() - i);
+        }
 
-	//Custo de trajeto do vertice i ao j
-	std::vector<std::vector<int>> t (4, std::vector<int>(4, 0) );
-	t[0][0] = 0;   t[0][1] = 66;  t[0][2] = 820; t[0][3] = 889;
-	t[1][0] = 66;  t[1][1] = 0;   t[1][2] = 505; t[1][3] = 56;
-	t[2][0] = 820; t[2][1] = 505; t[2][2] = 0;   t[2][3] = 987;
-	t[3][0] = 889; t[3][1] = 56;  t[3][2] = 987; t[3][3] = 0;
+        std::string line;
+        if (file_name_no_path[0] == 'v') { // instancias-1
+            std::getline(infile, line);
+            std::getline(infile, line);
+        }
 
-	//Cria vetor com 2 valores 0 para a solução parcial
-	std::vector<int> rp (1, 0);
+        int num_vertices = 0;
+        // Lê valores dos prêmios
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::istringstream prizes_line(line);
+        int prize;
+        std::vector<int> prizes;
+        while (prizes_line >> prize) {
+            prizes.push_back(prize);
+        }
+        num_vertices = prizes.size();
 
-	solution up_limit;
+        // Lê valores das penalidades
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::istringstream penalties_line(line);
+        int penalty; // valor do vértice
+        std::vector<int> penalties;
+        while (penalties_line >> penalty) {
+            penalties.push_back(penalty);
+        }
 
-	double alfa = 0.3;
-	double p_min = 102*alfa;
-	solution r = branch_and_bound_alg(p, p2, t, rp, up_limit, p.size()-1, p_min);
+        if (prizes.size() != penalties.size()) {
+            std::cout << ">>> Invalid instance: number of prizes and penalties don't match!" << '\n';
+            return EXIT_FAILURE;
+        }
 
-	if (r.values.prize == p[0] && r.values.penalty == p2[0]) {
-		std::cout << "\nSem resolução para o problema";
-	} else {
-		std::cout << "\nResult: ";
-		
-		for (int i = 0; i < r.v.size() - 1; i++) {
-			std::cout << "(" << r.v[i] << "," << r.v[i+1] << ") ";	
-		}
-		
-		std::cout << "\n";	
+        // Ler valores dos vértices
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::vector<std::vector<int>> edges(num_vertices);
+        int edge; // valor do vértice
+        int curr_num = 0;
+        for (int i = 0; i < num_vertices; ++i) {
+            std::getline(infile, line);
+            std::istringstream edges_line(line);
+            while(edges_line >> edge) {
+                edges[i].push_back(edge);
+            }
+            if (i > 0) {
+                if (curr_num != edges[i].size()) {
+                    std::cout << ">>> Invalid instance: incorrect number of edges!" << '\n';
+                    return EXIT_FAILURE;
+                }
+            }
+            curr_num = edges[i].size();
+        }
 
-		std::cout << "Prize min: " << p_min << "\n";
-		std::cout << "Prize: " << r.values.prize << " | Penaltys: " << r.values.penalty << "\n";
-	}
+        ///////////////////////////////////////////////////////
+        std::vector<int> partial_sltn (1, 0);
 
-	/*
-	  Receber parametros de qual instancia usar (10, 20, 30a, 30b, 30c, 50a, 50b, 100a, 100b, 
-	  250a, 250b, 500a, 500b, 1000a, 1000b) e do alfa (entre 0.2, 0.5 e 0.8), 
-	  caso não seja informado ou informado com um valor não suportado usar valores padrões
-	*/
+        solution up_limit;
+        double alpha = 0.5; // Alfa padrão
+        if (argc > 2) { // Passou valor do alfa
+            alpha = std::stod(argv[2]);
+        }
+        int prizes_sum = 0;
+        for (int i = 0; i < prizes.size(); ++i) {
+            prizes_sum += prizes[i];
+        }
+        double p_min = alpha * prizes_sum;
+        
+        int running_num = 3; // Número de vezes que a instância será executada para tirar a média 
+        double average_time = 0;
+        std::chrono::steady_clock::time_point begin;
+        std::chrono::steady_clock::time_point end;
+        solution r;
+        for(int i = 0; i < running_num; i++) {
+            // Medindo o tempo de execução
+            begin = std::chrono::steady_clock::now();
+            r = branch_and_bound_alg(prizes, penalties, edges, partial_sltn, up_limit, prizes.size()-1, p_min);
+            end = std::chrono::steady_clock::now();
+            average_time += (std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count()) / running_num;
+        }
 
-	/*
-	  Ler dados do arquivo do arquivo informado pela operação acima
-	  Escrever os premios em um vetor, as penalidades em outro vetor e os custos de locomoção em
-	  uma matriz
-	*/
+        if (r.values.prize == prizes[0] && r.values.penalty == penalties[0]) {
+            std::cout << "\nNo solution found for the input instance!";
+        } else {
+            std::cout << ">>> Branch and Bound\n";
+            std::cout << "Number of vertices\n  " << num_vertices << "\n";
+            std::cout << "Minimum prize (alpha = " << alpha << ")\n  " << p_min << "\n\n";
 
-	//Determinar prize_min = [Somatório dos premios] * alfa
+            std::cout << "Travel\n  ";
+            for (int i = 0; i < r.v.size() - 1; i++) {
+                std::cout << "(" << r.v[i] << "," << r.v[i+1] << ") ";  
+            }
+            std::cout << "\n";
 
-	/*
-	  DEPOIS DO ALGORITMO FUNCIONAR
-	  - Executar algoritmo 
-	  - Determinar tempo gasto para executar o algoritmo
-	  - Exibir resultado (Arestas, o bonus e a penalidade)
-	*/
-	
- 	return 0;
+            std::cout << "Total prizes\n  " << r.values.prize << "\nTotal penalties\n  " << r.values.penalty << "\n";
+            std::cout << "Average execution time on " << running_num << " executions (ms)\n  " << average_time << std::endl;
+        }
+    } else {
+        std::cout << "Please, inform the input file name on execution!\n";
+        return EXIT_FAILURE;
+    }
+    
+    return 0;
 }

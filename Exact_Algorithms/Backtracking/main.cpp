@@ -4,7 +4,6 @@
 #include <vector>
 #include <chrono>
 #include <algorithm>
-#include <climits>
 
 struct v_tuple {
   int prize;
@@ -46,7 +45,7 @@ v_tuple calc_prize_and_penalties (
 
 bool is_on_list (
     int element,
-    std::vector<int> v) {
+    const std::vector<int> &v) {
 
     bool is_element = false;
     int i = 0;
@@ -207,6 +206,7 @@ int main (int argc, char *argv[]) {
         if (r.values.prize == prizes[0] && r.values.penalty == penalties[0]) {
             std::cout << "\nNo solution found for the input instance!";
         } else {
+            std::cout << ">>> Backtracking\n";
             std::cout << "Number of vertices\n  " << num_vertices << "\n";
             std::cout << "Minimum prize (alpha = " << alpha << ")\n  " << p_min << "\n\n";
 
