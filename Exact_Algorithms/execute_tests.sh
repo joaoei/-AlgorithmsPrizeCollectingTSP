@@ -56,7 +56,3 @@ g++ -std=c++11 ./Branch_And_Bound/main.cpp -o ./Branch_And_Bound/alg_b_and_b
 ./Branch_And_Bound/alg_b_and_b ./Instances/Branch_and_Bound/v15.txt 0.2 > ./Results/Branch_and_Bound/v15_02.txt
 ./Branch_And_Bound/alg_b_and_b ./Instances/Branch_and_Bound/v15.txt 0.5 > ./Results/Branch_and_Bound/v15_05.txt
 ./Branch_And_Bound/alg_b_and_b ./Instances/Branch_and_Bound/v15.txt 0.8 > ./Results/Branch_and_Bound/v15_08.txt
-
-./Branch_And_Bound/alg_b_and_b ./Instances/Branch_and_Bound/v20.txt 0.2 > ./Results/Branch_and_Bound/v20_02.txt
-./Branch_And_Bound/alg_b_and_b ./Instances/Branch_and_Bound/v20.txt 0.5 > ./Results/Branch_and_Bound/v20_05.txt
-./Branch_And_Bound/alg_b_and_b ./Instances/Branch_and_Bound/v20.txt 0.8 > ./Results/Branch_and_Bound/v20_08.txt
