@@ -34,10 +34,10 @@ bool is_on_list (
 }
 
 v_tuple calc_prize_and_penalties (
-    const std::vector<int> &prizes, 
-    const std::vector<int> &penalties, 
-    const std::vector<std::vector<int>> &travel_cost,
-    const std::vector<int> &result_p) 
+    const std::vector<int> prizes, 
+    const std::vector<int> penalties, 
+    const std::vector<std::vector<int>> travel_cost,
+    const std::vector<int> result_p) 
 {
 
     int sum_penalties = 0;
@@ -65,9 +65,10 @@ v_tuple calc_prize_and_penalties (
 bool comp_desc (int i, int j) { return (i>j); }
 
 int calc_prize_inf (
-    std::vector<int> &prizes, 
-    const std::vector<int> &result_p,
-    int num_vertices) {
+    std::vector<int> prizes, 
+    const std::vector<int> result_p,
+    int num_vertices) 
+{
 
     int prize = 0;
     for (int i = 0; i < result_p.size(); i++) {
@@ -93,9 +94,9 @@ int calc_prize_inf (
 }
 
 int calc_penalty_inf (
-    const std::vector<int> &penalties, 
-    const std::vector<std::vector<int>> &travel_cost,
-    const std::vector<int> &result_p,
+    const std::vector<int> penalties, 
+    const std::vector<std::vector<int>> travel_cost,
+    const std::vector<int> result_p,
     int num_vertices) 
 {
 
@@ -164,7 +165,8 @@ solution branch_and_bound_alg (
     std::vector<int> result_p,
     solution up_limit,
     int num_vertices,
-    double prize_min) {
+    double prize_min) 
+{
     solution s;
 
     //calcular a up limit

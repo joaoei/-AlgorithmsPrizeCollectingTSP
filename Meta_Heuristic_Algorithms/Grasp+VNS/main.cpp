@@ -15,87 +15,71 @@ struct solution {
     v_tuple values;
 };
 
-v_tuple calc_prize_and_penalties (
-    const std::vector<int> &prizes, 
-    const std::vector<int> &penalties, 
-    const std::vector<std::vector<int>> &travel_cost,
-    const std::vector<int> &result_p) {
+solution grasp_vns () {
+    // solução = vazio
+    // penalidade = infinito
 
-    int sum_penalties = 0;
-    int sum_prizes   = 0;
-
-    //Soma todas as penalidades
-    for(int i = 0; i < penalties.size(); i++) {
-        sum_penalties += penalties[i];
-    }
-
-    for(int j = 0; j < result_p.size() - 1; j++) {
-        //Soma premio do no na posição j em result
-        sum_prizes   += prizes[result_p[j]];
-        sum_penalties -= penalties[result_p[j]];
-        sum_penalties += travel_cost[ result_p[j] ][ result_p[j+1] ];
-    }
-
-    v_tuple value;
-    value.prize = sum_prizes;
-    value.penalty = sum_penalties;
-
-    return value;
-}
-
-bool is_on_list (
-    int element,
-    const std::vector<int> &v) {
-
-    bool is_element = false;
-    int i = 0;
-
-    while ( !is_element && (i < v.size()) ) {
-        if (element == v[i]) {
-            is_element = true;
+    // FASE DE CONSTRUÇÃO
+    for (int i = 0; i < maxInter; i++) {
+        //s - solução parcial = vazio
+        // 0 inserido como nó inicial em s 
+        
+        // todo k não pertencente a s
+        for (int i2 = 0; i2 < nos.size(); i2++) {
+            // calcula a economia nas inserções
         }
 
-        i++;
-    }
+        while (premio < premio_min || existe economia positiva) {
+            // LRC - Lista dos vertices com maior economia
+            // Dado um alfa selecionar os n mais economicos
+            // Selecionar um aleatoriamente
+            // s <- s U {v}
+            // Recalcula a economia nas inserções
+        }
 
-    return is_element;
-}
-
-solution backtracking_alg (
-    const std::vector<int> &prizes, 
-    const std::vector<int> &penalties, 
-    const std::vector<std::vector<int>> &travel_cost,
-    const std::vector<int> &result_p,
-    const solution &result,
-    const double &prize_min) 
-{
-    solution s = result;
-    v_tuple r = calc_prize_and_penalties(prizes, penalties, travel_cost, result_p);
-    
-    /*
-      Se o premio acumulado for maior ou igual que o premio minimo e 
-      a penalidade for menor que a penalidade da solução atual
-    */
-    if (r.prize >= prize_min && r.penalty < s.values.penalty) {
-        s.v = result_p;
-        s.values = r;
-    }
-
-    
-    //Chama o algoritmo de backtracking para cada possibilidade
-    for (int i = 1; i < prizes.size(); i++) {
-        if (!is_on_list(i, result_p)) {
-            std::vector<int> r = result_p;
-            r[result_p.size() - 1] = i;
-            r.push_back (0);
-
-            s = backtracking_alg (
-                prizes, penalties, travel_cost, 
-                r, s, prize_min);
+        if (penalidade(s) < penalidade(solucao) ) {
+            solucao = s;
+            penalidade(solucao) = penalidade(s)
         }
     }
 
-    return s; 
+    VNS(solucao);
+    return solucao;
+}
+
+solution VNS (solution s) {
+    // r = numero de vizinhanças 
+    while (tempo sem melhora < maxTempo) {
+        int k = 1;
+        while (k <= r) {
+            // Selecione um vizinho s_ qualquer da vizinhança N_k(s)
+            s__ = VND(s_)
+            if (penalidade(s__) < penalidade(s_)) {
+                s = s__;
+                k = 1;
+            } else {
+                k++;
+            }
+        }
+    }
+
+    return s;
+}
+
+solution VND (solution s) {
+    // r = n de procedimentos de refinamento
+    k = 1;
+    while (k < r) {
+        // seja s_ um otimo local segundo o k-esimo procedimento de refinamento
+        if (penalidade(s_) < penalidade(s)) {
+            s = s_;
+            k = 1;
+        } else {
+            k++;
+        }
+    }
+
+    return s;
 }
 
 int main (int argc, char *argv[]) {
@@ -171,15 +155,9 @@ int main (int argc, char *argv[]) {
         }
 
         ///////////////////////////////////////////////////////
-        std::vector<int> partial_sltn (2, 0);
+        std::vector<int> partial_sltn (1, 0);
 
-        solution sltn;
-        v_tuple values;
-        values.prize   = prizes[0];
-        values.penalty = penalties[0];
-        sltn.v = partial_sltn;
-        sltn.values = values;
-
+        solution up_limit;
         double alpha = 0.5; // Alfa padrão
         if (argc > 2) { // Passou valor do alfa
             alpha = std::stod(argv[2]);
@@ -198,15 +176,15 @@ int main (int argc, char *argv[]) {
         for(int i = 0; i < running_num; i++) {
             // Medindo o tempo de execução
             begin = std::chrono::steady_clock::now();
-            r = backtracking_alg(prizes, penalties, edges, partial_sltn, sltn, p_min);
+            // r = branch_and_bound_alg(prizes, penalties, edges, partial_sltn, up_limit, prizes.size()-1, p_min);
             end = std::chrono::steady_clock::now();
-            average_time += (std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count()) / running_num;
+            // average_time += (std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count()) / running_num;
         }
 
         if (r.values.prize == prizes[0] && r.values.penalty == penalties[0]) {
             std::cout << "\nNo solution found for the input instance!";
         } else {
-            std::cout << ">>> Backtracking\n";
+            std::cout << ">>> Branch and Bound\n";
             std::cout << "Number of vertices\n  " << num_vertices << "\n";
             std::cout << "Minimum prize (alpha = " << alpha << ")\n  " << p_min << "\n\n";
 
