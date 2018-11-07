@@ -1,0 +1,14 @@
+>>> Backtracking
+Number of vertices
+  9
+Minimum prize (alpha = 0.2)
+  62
+
+Travel
+  (0,1) (1,5) (5,7) (7,2) (2,4) (4,6) (6,0) 
+Total prizes
+  217
+Total penalties
+  1289
+Average execution time on 3 executions (ms)
+  180

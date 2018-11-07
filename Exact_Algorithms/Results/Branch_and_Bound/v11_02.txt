@@ -1,0 +1,14 @@
+>>> Branch and Bound
+Number of vertices
+  11
+Minimum prize (alpha = 0.2)
+  76.6
+
+Travel
+  (0,1) (1,7) (7,5) (5,10) (10,2) (2,4) (4,6) (6,0) 
+Total prizes
+  270
+Total penalties
+  1558
+Average execution time on 3 executions (ms)
+  34

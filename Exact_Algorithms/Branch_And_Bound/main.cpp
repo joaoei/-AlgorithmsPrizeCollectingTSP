@@ -66,9 +66,8 @@ bool comp_desc (int i, int j) { return (i>j); }
 
 int calc_prize_inf (
     std::vector<int> prizes, 
-    const std::vector<int> result_p,
-    int num_vertices) 
-{
+    const std::vector<int> &result_p,
+    int num_vertices) {
 
     int prize = 0;
     for (int i = 0; i < result_p.size(); i++) {
