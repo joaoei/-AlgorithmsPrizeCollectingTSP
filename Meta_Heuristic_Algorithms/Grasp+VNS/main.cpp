@@ -15,7 +15,58 @@ struct solution {
     v_tuple values;
 };
 
-solution grasp_vns () {
+v_tuple calc_prize_and_penalties (
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const std::vector<int> &result_p) {
+
+    int sum_penalties = 0;
+    int sum_prizes   = 0;
+
+    //Soma todas as penalidades
+    for(int i = 0; i < penalties.size(); i++) {
+        sum_penalties += penalties[i];
+    }
+
+    for(int j = 0; j < result_p.size() - 1; j++) {
+        //Soma premio do no na posição j em result
+        sum_prizes   += prizes[result_p[j]];
+        sum_penalties -= penalties[result_p[j]];
+        sum_penalties += travel_cost[ result_p[j] ][ result_p[j+1] ];
+    }
+
+    v_tuple value;
+    value.prize = sum_prizes;
+    value.penalty = sum_penalties;
+
+    return value;
+}
+
+bool is_on_list (
+    int element,
+    const std::vector<int> &v) {
+
+    bool is_element = false;
+    int i = 0;
+
+    while ( !is_element && (i < v.size()) ) {
+        if (element == v[i]) {
+            is_element = true;
+        }
+
+        i++;
+    }
+
+    return is_element;
+}
+
+
+solution grasp_vns (
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min) {
     // solução = vazio
     // penalidade = infinito
 
@@ -37,35 +88,144 @@ solution grasp_vns () {
             // Recalcula a economia nas inserções
         }
 
+
         if (penalidade(s) < penalidade(solucao) ) {
             solucao = s;
             penalidade(solucao) = penalidade(s)
         }
     }
 
-    VNS(solucao);
-    return solucao;
+    
+    return VNS(
+        solucao,
+        3,
+        prizes,
+        penalties, 
+        travel_cost,
+        prize_min
+    );
 }
 
-solution VNS (solution s) {
-    // r = numero de vizinhanças 
-    while (tempo sem melhora < maxTempo) {
-        int k = 1;
-        while (k <= r) {
-            // Selecione um vizinho s_ qualquer da vizinhança N_k(s)
-            s__ = VND(s_)
-            if (penalidade(s__) < penalidade(s_)) {
-                s = s__;
+
+
+solution VNS (
+    solution s,
+    int maxIt, 
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min) 
+{
+    int iterations = 0;
+    int num_NBHD = 3;
+    /* 
+        r = numero de vizinhanças
+
+        1 -> Trocar dois vértices da solução
+        2 -> Retirar vértice: Escolhe-se, aleatoriamente, 
+             um vértice qualquer (que não seja o 0) e faça 
+             parte da solução, removendo-o da solução
+        3 -> Inserir vértice: Escolhe-se, aleatoriamente, um 
+             vértice não faça parte da solução, inserindo-o no final do caminho.
+    */
+
+    while (iterations < maxIt) {
+        int n = 1;
+        
+        while (n <= num_NBHD) {
+            // Selecione um vizinho s_1 qualquer da vizinhança N_k(s)
+            std::vector<int> s_1 = neighbor(s.v, n, prizes);
+            
+            // Busca local no vizinho obtido no passo anterior
+            //s_2 = BUSCA_LOCAL(s_1);
+            
+            if ( (s_2.values.prize >= prize_min) && s_2.values.penalty < s.values.penalty) {
+                s = s_2;
                 k = 1;
             } else {
                 k++;
             }
         }
+
+        iterations++;
     }
 
     return s;
 }
 
+std::vector<int> neighbor(
+    std::vector<int> s, 
+    int nbhd,
+    std::vector<int> &prizes) 
+{
+    std::vector<std::vector<int>> solutions;
+
+    int c;
+
+    switch (nbhd) {
+        case 1:
+            // Gerar vizinhança trocando dois vértices da solução
+            c = s.size() - 2;
+
+            while (c > 1) {
+                std::vector<int> solution = s;
+                
+                int v1 = solution[c];
+                int v2 = solution[c-1];
+
+                solution[c] = v2;
+                solution[c-1] = v1;
+
+                solutions.push_back(solution);
+
+                c--;
+            }
+
+            break;
+        case 2:
+            // Gerar vizinhança retirando um vértice da solução 
+            c = s.size() - 2;
+
+            while (c > 0) {
+                std::vector<int> solution = s;
+
+                solution.erase(solution.begin()+c);
+
+                solutions.push_back(solution);
+
+                c--;
+            }
+
+            break;
+        case 3:
+            // Gerar vizinhança inserindo um vértice na solução
+            for (int i = 1; i < prizes.size(); i++) {
+                if ( !is_on_list(i, s) ) {
+                    std::vector<int> solution = s;
+                    solution[s.size() - 1] = i;
+                    solution.push_back(0);
+                
+                    solutions.push_back(solution);
+                }
+            }
+
+            break;
+    }
+
+    // Caso vazio retorne a solução passada
+    if (solutions.size() == 0) {
+        return s;
+    } 
+
+    // Escolher aleatoriamente uma solução da vizinhança
+    // Retornar valor escolhido
+    srand((unsigned)time(0));
+    int n = rand()%( solutions.size() );
+    
+    return solutions[n];
+}
+
+/* BUSCA LOCAL
 solution VND (solution s) {
     // r = n de procedimentos de refinamento
     k = 1;
@@ -81,9 +241,10 @@ solution VND (solution s) {
 
     return s;
 }
+*/
 
 int main (int argc, char *argv[]) {
-
+/*
     if (argc > 1) {
         std::string file_name = argv[1];
         std::ifstream infile(file_name);
@@ -201,6 +362,19 @@ int main (int argc, char *argv[]) {
         std::cout << "Please, inform the input file name on execution!\n";
         return EXIT_FAILURE;
     }
-    
+ */  
+
+    //TESTE DO VNS E FUNÇÃO neighbor
+    int myints[] = {0, 1, 3, 5, 0};
+    std::vector<int> fifth (myints, myints + sizeof(myints) / sizeof(int) );
+
+    std::vector<int> s (7, 2);
+    std::vector<int> resp = neighbor(fifth, 1, s);
+
+    for (std::vector<int>::iterator it = resp.begin(); it != resp.end(); ++it)
+        std::cout << ' ' << *it;
+
+    std::cout << '\n';
+
     return 0;
 }
