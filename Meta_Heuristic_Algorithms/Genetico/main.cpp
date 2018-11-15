@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 #include <algorithm>
+#include <stdlib.h>   
 
 struct v_tuple {
   int prize;
@@ -61,26 +62,84 @@ bool is_on_list (
     return is_element;
 }
 
-
-solution alg_genetico (
+// solution
+void alg_genetico (
     const std::vector<int> &prizes, 
     const std::vector<int> &penalties, 
     const std::vector<std::vector<int>> &travel_cost,
     const double &prize_min) 
 {
 
-    // GERAR POPULAÇÃO INICIAL (DECIDIR NUMERO DE SOLUÇÕES CRIADAS)
+    /* 
+     * GERAR POPULAÇÃO INICIAL (DECIDIR NUMERO DE SOLUÇÕES CRIADAS)
+     * Criar 8 soluções passando por todos os vertices
+     * Gerando randomicamente qual vertice inserir no caminho
+     */
 
-    while (condicao_de_parada) {
-        // CALCULA O PREMIO E PENALIDADE DE CADA SOLUÇÃO DA POPULAÇÃO
-        // SELECIONA OS PAIS PARA REPRODUZIR
-        // RECOMBINAR (TROCA DE MATERIAIS GENETICOS DOS PAIS) DECIDIR DE QUE FORMA SERÁ FEITA*
-        // EFETUAR MUTAÇÃO NOS FILHOS
-        // RENOVAR POPULAÇÃO 
+    //std::vector<solution> population;
+    std::vector<std::vector<int>> population;
+
+    // Cria vetor com todos as cidades
+    std::vector<int> cities (prizes.size()-1, 0);
+    for (int i = 0; i < cities.size(); i++) {
+        cities[i] = i+1;
     }
+
+    srand((unsigned)time(0));
+
+    // Cria as 8 soluções
+    for (int j = 0; j < 8; j++) {
+
+        std::vector<int> available_cities = cities;
+
+        std::vector<int> solution_n (prizes.size()+1, 0);
+        
+        // Adiciona as cidades no caminho
+        for (int p = 1; p < solution_n.size() - 1; p++) {
+            int n = rand()%( available_cities.size() );
+
+            solution_n[p] = available_cities[n];
+
+            available_cities.erase(available_cities.begin()+n);
+        }
+
+        // Adiciona a solução criada na população
+        population.push_back(solution_n);
+    }
+
+    //while (condicao_de_parada) {
+        // CALCULA O PREMIO E PENALIDADE DE CADA SOLUÇÃO DA POPULAÇÃO
+        
+        /*
+         * SELECIONA OS PAIS PARA REPRODUZIR
+         * Selecionar as 4 melhores soluções e outras 2 aleatoriamente
+         */ 
+
+        /* RECOMBINAR (TROCA DE MATERIAIS GENETICOS DOS PAIS)
+         * Combina todos os pais ou se escolhe os pares?
+         */
+
+        /*
+         * EFETUAR MUTAÇÃO NOS FILHOS
+         * Escolher aleatoriamente uma posição do filho para ser modificada
+         * Verificar se a solução continua sendo válida 
+         * (sem nenhum vertice repetido e com o premio minimo coletado) 
+         */
+
+        /*
+         * RENOVAR POPULAÇÃO 
+         */
+    //}
 
     // RETORNE MELHOR SOLUÇÃO
 
+    for (int i = 0; i < population.size(); i++) {
+        for (std::vector<int>::iterator it = population[i].begin(); it != population[i].end(); ++it)
+            std::cout << ' ' << *it;
+        std::cout << '\n';
+    }
+
+    std::cout << '\n';
 }
 
 
@@ -204,6 +263,12 @@ int main (int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 */  
+    int myints[] = {0, 1, 2, 3};
+    std::vector<int> pri (myints, myints + sizeof(myints) / sizeof(int) );
+    std::vector<int> pen (myints, myints + sizeof(myints) / sizeof(int) );
+    std::vector<std::vector<int>> t (2, std::vector<int> (3, 0));
+    
+    alg_genetico(pri, pen, t, 10);
 
     return 0;
 }
