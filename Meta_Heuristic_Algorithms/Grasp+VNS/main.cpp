@@ -347,15 +347,41 @@ std::vector<int> neighbor(
     return solutions[n];
 }
 
-/* BUSCA LOCAL
-solution VND (solution s) {
-    // r = n de procedimentos de refinamento
-    k = 1;
+// BUSCA LOCAL
+solution VND (
+    solution s,
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min) 
+{
+    refine_num = 3
+    k = 0;
+    solution s_prime;
     while (k < r) {
+        s_prime = s;
+        if (k == 0) { // SeqDropSeqAdd
+            int num_v_sol;
+            do {
+                num_v_sol = s_prime.v.size();
+                s_prime = drop_step(s_prime, prizes, penalties, travel_cost, prize_min);
+            } while (num_v_sol > s.size());
+            do {
+                num_v_sol = s_prime.v.size();
+                s_prime = add_step(s_prime, prizes, penalties, travel_cost, prize_min);
+            } while (num_v_sol < s.size());
+
+        } else if (k == 1) { // 2-Optimal
+
+        } else { // AddDrop
+            s_prime = add_step(s_prime, prizes, penalties, travel_cost, prize_min);
+            s_prime = drop_step(s_prime, prizes, penalties, travel_cost, prize_min);
+        }
+
         // seja s_ um otimo local segundo o k-esimo procedimento de refinamento
-        if (penalidade(s_) < penalidade(s)) {
-            s = s_;
-            k = 1;
+        if (s_prime.values.penalty < s.values.penalty) {
+            s = s_prime;
+            k = 0;
         } else {
             k++;
         }
@@ -363,7 +389,6 @@ solution VND (solution s) {
 
     return s;
 }
-*/
 
 int main (int argc, char *argv[]) {
 /*
