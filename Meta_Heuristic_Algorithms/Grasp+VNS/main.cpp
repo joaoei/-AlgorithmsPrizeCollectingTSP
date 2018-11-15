@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 #include <algorithm>
+#include <stdlib.h>
 
 struct v_tuple {
   int prize;
@@ -106,9 +107,58 @@ solution grasp_vns (
     );
 }
 
+// Metaheurística ADD_STEP
+solution ADD_STEP(
+    solution s,
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min) 
+{
+    // Construção dos vértices que não fazem parte da rota da solução
+    std::vector<int> vertices_not_on_solution;
+    for (int i = 0; i < prizes.size(); ++i)
+    {
+        vertices_not_on_solution.push_back(1);
+    }
+
+    // Deixando valor 1 apenas nas posições do vector onde o vértice não está na solução
+    for (int i = 0; i < s.v.size() - 1; ++i)
+    {
+        int num_v_sol = s.v[i]
+        vertices_not_on_solution[num_v_sol] = 0;
+    }
+
+    // Calcula a máxima economia positiva considerando a inserção de vértices que não fazem parte da solução
+    int max_positive_econom = 0;
+    int v_max_econom = -1;
+    int v1_insert = -1;
+    int v2_insert = -1;
+    for (int i = 0; i < vertices_not_on_solution; ++i)
+    {
+        if (vertices_not_on_solution[i] == 0) continue;
+        int curr_econom;
+        for (int j = 0; j < s.v.size() - 1; ++j)
+        {
+            int sol_edge_cost = travel_cost[ s.v[j] ][ s.v[j+1] ];
+            int v_penalty = penalties[i];
+            int v1_to_curr_v = travel_cost[ s.v[j] ][ i ];
+            int curr_v_to_v2 = travel_cost[ i ][s.v[j+1] ];
+            curr_econom = sol_edge_cost + v_penalty - v1_to_curr_v - curr_v_to_v2;
+
+            if (curr_econom > max_positive_econom)
+            {
+                max_positive_econom = curr_econom;
+                v_max_econom = i;
+                v1_insert = s.v[j];
+                v2_insert = s.v[j+1];
+            }
+        }
+    }
+}
 
 
-solution VNS (
+solution VNS ( 
     solution s,
     int maxIt, 
     const std::vector<int> &prizes, 
