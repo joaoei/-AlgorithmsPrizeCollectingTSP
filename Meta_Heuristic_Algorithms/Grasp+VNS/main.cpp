@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 #include <algorithm>
+#include <stdlib.h>   
 
 struct v_tuple {
   int prize;
