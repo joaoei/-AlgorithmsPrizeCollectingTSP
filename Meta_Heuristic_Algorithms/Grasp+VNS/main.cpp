@@ -129,7 +129,6 @@ solution add_step(
         vertices_not_on_solution[num_v_sol] = 0;
     }
 
-
     /*
      * Calcula a máxima economia positiva considerando a inserção de vértices que 
      * não fazem parte da solução
@@ -172,7 +171,6 @@ solution add_step(
             did_insert_v = true; 
         }
     }
-    vertices_not_on_solution[v_max_econom] = 0; // Agora o vértice é parte da solução
     s.v = new_v_solution;
     s.values.prize = s.values.prize + prizes[v_max_econom];
     s.values.penalty = s.values.penalty - max_positive_econom;
@@ -180,6 +178,57 @@ solution add_step(
     return s;
 }
 
+
+// Metaheurística DROP_STEP
+solution drop_step(
+    solution s,
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min)
+{
+    /*
+     * Calcula a máxima economia positiva considerando a remoção de vértices que 
+     * fazem parte da solução
+     */
+    int max_positive_econom = 0;
+    int v_max_econom = -1;
+    int curr_econom;
+    for (int i = 1; i < s.v.size() - 1; ++i)
+    {
+        int prev_to_curr_edge_cost = travel_cost[ s.v[i-1] ][ s.v[i] ];
+        int curr_to_next_edge_cost = travel_cost[ s.v[i] ][ s.v[i+1] ];
+        int prev_to_next_edge_cost = travel_cost[ s.v[i-1] ][ s.v[i+1] ];
+        int curr_penalty = penalties[ s.v[j] ];
+        curr_econom = prev_to_curr_edge_cost + curr_to_next_edge_cost - prev_to_next_edge_cost - curr_penalty;
+
+        if (curr_econom > max_positive_econom)
+        {
+            max_positive_econom = curr_econom;
+            v_max_econom = s.v[i];
+        }
+    }
+
+    if (max_positive_econom < 1) return s;
+
+    int prizes_updated = s.values.prize - prizes[v_max_econom];
+    if (prizes_updated < prize_min) return s;
+
+    // Atualizando solução removendo vértice da rota
+    std::vector<int> new_v_solution;
+    for (int i = 1; i < s.v.size() - 1; ++i)
+    {
+        if (s.v.[i] == v_max_econom) { 
+            continue;
+        }
+        new_v_solution.push_back(s.v[i]);
+    }
+    s.v = new_v_solution;
+    s.values.prize = prizes_updated;
+    s.values.penalty = s.values.penalty - max_positive_econom;
+
+    return s;
+}
 
 solution VNS ( 
     solution s,
