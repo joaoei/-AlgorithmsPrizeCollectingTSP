@@ -129,56 +129,55 @@ solution ADD_STEP(
         vertices_not_on_solution[num_v_sol] = 0;
     }
 
-    do {
-        /*
-         * Calcula a máxima economia positiva considerando a inserção de vértices que 
-         * não fazem parte da solução
-         */
-        int max_positive_econom = 0;
-        int v_max_econom = -1;
-        int v1_insert = -1;
-        int v2_insert = -1;
-        for (int i = 0; i < vertices_not_on_solution; ++i)
-        {
-            if (vertices_not_on_solution[i] == 0) continue;
 
-            int curr_econom;
-            for (int j = 0; j < s.v.size() - 1; ++j)
+    /*
+     * Calcula a máxima economia positiva considerando a inserção de vértices que 
+     * não fazem parte da solução
+     */
+    int max_positive_econom = 0;
+    int v_max_econom = -1;
+    int v1_insert = -1;
+    int v2_insert = -1;
+    for (int i = 0; i < vertices_not_on_solution; ++i)
+    {
+        if (vertices_not_on_solution[i] == 0) continue;
+
+        int curr_econom;
+        for (int j = 0; j < s.v.size() - 1; ++j)
+        {
+            int sol_edge_cost = travel_cost[ s.v[j] ][ s.v[j+1] ];
+            int v_penalty = penalties[i];
+            int v1_to_curr_v = travel_cost[ s.v[j] ][ i ];
+            int curr_v_to_v2 = travel_cost[ i ][s.v[j+1] ];
+            curr_econom = sol_edge_cost + v_penalty - v1_to_curr_v - curr_v_to_v2;
+
+            if (curr_econom > max_positive_econom)
             {
-                int sol_edge_cost = travel_cost[ s.v[j] ][ s.v[j+1] ];
-                int v_penalty = penalties[i];
-                int v1_to_curr_v = travel_cost[ s.v[j] ][ i ];
-                int curr_v_to_v2 = travel_cost[ i ][s.v[j+1] ];
-                curr_econom = sol_edge_cost + v_penalty - v1_to_curr_v - curr_v_to_v2;
-
-                if (curr_econom > max_positive_econom)
-                {
-                    max_positive_econom = curr_econom;
-                    v_max_econom = i;
-                    v1_insert = s.v[j];
-                    v2_insert = s.v[j+1];
-                }
+                max_positive_econom = curr_econom;
+                v_max_econom = i;
+                v1_insert = s.v[j];
+                v2_insert = s.v[j+1];
             }
         }
+    }
 
-        if (max_positive_econom < 1) continue;
+    if (max_positive_econom < 1) return s;
 
-        // Atualizando solução com o novo vértice a ser inserido na rota
-        std::vector<int> new_v_solution;
-        bool did_insert_v = false;
-        for (int i = 0; i < s.v.size(); ++i)
-        {
-            new_v_solution.push_back(s.v[i]);
-            if (!did_insert_v && s.v.[i] == v1_insert) { 
-                new_v_solution.push_back(v_max_econom);
-                did_insert_v = true; 
-            }
+    // Atualizando solução com o novo vértice a ser inserido na rota
+    std::vector<int> new_v_solution;
+    bool did_insert_v = false;
+    for (int i = 0; i < s.v.size(); ++i)
+    {
+        new_v_solution.push_back(s.v[i]);
+        if (!did_insert_v && s.v.[i] == v1_insert) { 
+            new_v_solution.push_back(v_max_econom);
+            did_insert_v = true; 
         }
-        vertices_not_on_solution[v_max_econom] = 0; // Agora o vértice é parte da solução
-        s.v = new_v_solution;
-        s.values.prize = s.values.prize + prizes[v_max_econom];
-        s.values.penalty = s.values.penalty - max_positive_econom;
-    } while(max_positive_econom > 0 || s.values.prize < prize_min );
+    }
+    vertices_not_on_solution[v_max_econom] = 0; // Agora o vértice é parte da solução
+    s.v = new_v_solution;
+    s.values.prize = s.values.prize + prizes[v_max_econom];
+    s.values.penalty = s.values.penalty - max_positive_econom;
 
     return s;
 }
