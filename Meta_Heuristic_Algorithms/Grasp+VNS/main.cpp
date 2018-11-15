@@ -108,7 +108,7 @@ solution grasp_vns (
 }
 
 // Metaheurística ADD_STEP
-solution ADD_STEP(
+solution add_step(
     solution s,
     const std::vector<int> &prizes, 
     const std::vector<int> &penalties, 
@@ -137,7 +137,6 @@ solution ADD_STEP(
     int max_positive_econom = 0;
     int v_max_econom = -1;
     int v1_insert = -1;
-    int v2_insert = -1;
     for (int i = 0; i < vertices_not_on_solution; ++i)
     {
         if (vertices_not_on_solution[i] == 0) continue;
@@ -156,7 +155,6 @@ solution ADD_STEP(
                 max_positive_econom = curr_econom;
                 v_max_econom = i;
                 v1_insert = s.v[j];
-                v2_insert = s.v[j+1];
             }
         }
     }
