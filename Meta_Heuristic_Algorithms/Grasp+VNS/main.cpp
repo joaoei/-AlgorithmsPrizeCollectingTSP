@@ -372,13 +372,53 @@ solution VND (
             } while (num_v_sol < s.size());
 
         } else if (k == 1) { // 2-Optimal
+            int min_penalty_after_edge_change = s_prime.values.penalty;
+            int index_first_edge = -1;
+            int index_second_edge = -1;
+
+            for (int i = 0; i < s_prime.v.size() - 3; ++i)
+            {
+                for(int j = i + 2; j < s_prime.v.size() - 1) 
+                {
+                    int new_penalty = s_prime.values.penalty;
+                    new_penalty -= travel_cost[s_prime.v[i]][s_prime.v[i+1]]; // Retirando custo da aresta 1
+                    new_penalty -= travel_cost[s_prime.v[j]][s_prime.v[j+1]]; // Retirando custo da aresta 2
+                    new_penalty += travel_cost[s_prime.v[i]][s_prime.v[j]]; // Acrescentando custo da nova aresta 1
+                    new_penalty += travel_cost[s_prime.v[i+1]][s_prime.v[j+1]]; // Acrescentando custo da nova aresta 2
+                    if (new_penalty < min_penalty_after_edge_change) {
+                        min_penalty_after_edge_change = new_penalty;
+                        index_first_edge = i;
+                        index_second_edge = j;
+                    }
+                }
+            }
+
+            if (min_penalty_after_edge_change < s_prime.values.penalty && 
+                index_first_edge >= 0 &&
+                index_first_edge < s_prime.v.size() &&
+                index_second_edge > index_first_edge &&
+                index_second_edge < s_prime.v.size)
+            {
+                // Atualizando sequência de vértices após uma troca de 2 arestas com economia de penalidades
+                std::vector<int> new_v = s_prime.v;
+                int index_update = index_first_edge + 1
+                int last_index_update = index_second_edge
+                int reverse_index = index_second_edge
+                while(index_update <= last_index_update) {
+                    new_v[index_update] = s_prime.v[reverse_index];
+                    index_update++;
+                    reverse_index--;
+                }
+                s_prime.v = new_v;
+                s_prime.values.penalty = min_penalty_after_edge_change;
+            }
 
         } else { // AddDrop
             s_prime = add_step(s_prime, prizes, penalties, travel_cost, prize_min);
             s_prime = drop_step(s_prime, prizes, penalties, travel_cost, prize_min);
         }
 
-        // seja s_ um otimo local segundo o k-esimo procedimento de refinamento
+        // Seja s_ um otimo local segundo o k-esimo procedimento de refinamento
         if (s_prime.values.penalty < s.values.penalty) {
             s = s_prime;
             k = 0;
