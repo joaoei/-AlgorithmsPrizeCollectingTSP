@@ -388,18 +388,21 @@ solution VND (
 }
 
 solution VNS ( 
-    solution s,
     int maxIt, 
+    solution s,
     const std::vector<int> &prizes, 
     const std::vector<int> &penalties, 
     const std::vector<std::vector<int>> &travel_cost,
     const double &prize_min) 
 {
     int iterations = 0;
-    int nhbd_num = 5;
-
+    int nhbd_num = 3;
+    solution previous_sol;
+    solution new_sol;
+    
     while (iterations < maxIt) {
         int k = 1;
+        previous_sol = s;
         
         while (k <= nhbd_num) {
             // Selecione um vizinho s_1 qualquer da vizinhança N_k(s)
@@ -424,7 +427,13 @@ solution VNS (
                 k++;
             }
         }
-        iterations++;
+        
+        new_sol = s;
+        if(new_sol.values.penalty < previous_sol.values.penalty){
+            continue;
+        } else {
+            iterations++;
+        }
     }
 
     return s;
@@ -517,12 +526,13 @@ int main (int argc, char *argv[]) {
         double p_min = alpha * prizes_sum;
         
         /*
-        TESTANDO VND
-        std::vector<int> vertices {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
-        v_tuple tuple = {330, 5796};
+        // TESTANDO VNS
+        // instância backtracking v12.txt
+        std::vector<int> vertices {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0};
+        v_tuple tuple = {525, 6997};
         solution sol = {vertices, tuple};
         
-        solution final = VND(sol, prizes, penalties, edges, p_min);
+        solution final = VNS(100, sol, prizes, penalties, edges, p_min);
         
         std::cout << "Vertices" << std::endl;
         for (auto i : final.v) {
