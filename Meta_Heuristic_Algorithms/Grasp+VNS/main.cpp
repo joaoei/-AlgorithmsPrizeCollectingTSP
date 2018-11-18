@@ -239,27 +239,26 @@ solution VNS (
     const double &prize_min) 
 {
     int iterations = 0;
-    int num_NBHD = 3;
-    /* 
-        r = numero de vizinhanças
-
-        1 -> Trocar dois vértices da solução
-        2 -> Retirar vértice: Escolhe-se, aleatoriamente, 
-             um vértice qualquer (que não seja o 0) e faça 
-             parte da solução, removendo-o da solução
-        3 -> Inserir vértice: Escolhe-se, aleatoriamente, um 
-             vértice não faça parte da solução, inserindo-o no final do caminho.
-    */
+    int nhbd_num = 5;
 
     while (iterations < maxIt) {
-        int n = 1;
+        int k = 1;
         
-        while (n <= num_NBHD) {
+        while (k <= nhbd_num) {
             // Selecione um vizinho s_1 qualquer da vizinhança N_k(s)
-            std::vector<int> s_1 = neighbor(s.v, n, prizes);
+            std::vector<int> neighbor_v = neighbor(s.v, k, prizes);
+            v_tuple neighbor_v_tuple = calc_prize_and_penalties(prizes, penalties, travel_cost, neighbor_v);
+
+            // Se for uma solução inválida, vá para próximo método de vizinhança
+            if (neighbor_v_tuple.prize < prize_min) {
+                k++;
+                continue;
+            }
+
+            solution s_neighbor = {neighbor_v, neighbor_v_tuple};
             
-            // Busca local no vizinho obtido no passo anterior
-            //s_2 = BUSCA_LOCAL(s_1);
+            // VND no vizinho obtido no passo anterior
+            solution s_2 = VND(s_neighbor, prizes, penalties, travel_cost, prize_min);
             
             if ( (s_2.values.prize >= prize_min) && s_2.values.penalty < s.values.penalty) {
                 s = s_2;
@@ -268,7 +267,6 @@ solution VNS (
                 k++;
             }
         }
-
         iterations++;
     }
 
