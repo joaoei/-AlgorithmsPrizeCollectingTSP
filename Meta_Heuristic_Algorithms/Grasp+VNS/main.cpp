@@ -172,6 +172,7 @@ solution add_step(
             did_insert_v = true; 
         }
     }
+    
     s.v = new_v_solution;
     s.values.prize = s.values.prize + prizes[v_max_econom];
     s.values.penalty = s.values.penalty - max_positive_econom;
@@ -217,7 +218,7 @@ solution drop_step(
 
     // Atualizando solução removendo vértice da rota
     std::vector<int> new_v_solution;
-    for (int i = 1; i < s.v.size() - 1; ++i)
+    for (int i = 0; i < s.v.size(); ++i)
     {
         if (s.v[i] == v_max_econom) { 
             continue;
@@ -321,11 +322,11 @@ solution VND (
             do {
                 num_v_sol = s_prime.v.size();
                 s_prime = drop_step(s_prime, prizes, penalties, travel_cost, prize_min);
-            } while (num_v_sol > s.v.size());
+            } while (num_v_sol > s_prime.v.size());
             do {
                 num_v_sol = s_prime.v.size();
                 s_prime = add_step(s_prime, prizes, penalties, travel_cost, prize_min);
-            } while (num_v_sol < s.v.size());
+            } while (num_v_sol < s_prime.v.size());
 
         } else if (k == 1) { // 2-Optimal
             int min_penalty_after_edge_change = s_prime.values.penalty;
@@ -501,11 +502,10 @@ int main (int argc, char *argv[]) {
             curr_num = edges[i].size();
         }
         
-        /*
         ///////////////////////////////////////////////////////
-        std::vector<int> partial_sltn (1, 0);
+        // std::vector<int> partial_sltn (1, 0);
 
-        solution up_limit;
+        // solution up_limit;
         double alpha = 0.5; // Alfa padrão
         if (argc > 2) { // Passou valor do alfa
             alpha = std::stod(argv[2]);
@@ -516,6 +516,25 @@ int main (int argc, char *argv[]) {
         }
         double p_min = alpha * prizes_sum;
         
+        /*
+        TESTANDO VND
+        std::vector<int> vertices {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
+        v_tuple tuple = {330, 5796};
+        solution sol = {vertices, tuple};
+        
+        solution final = VND(sol, prizes, penalties, edges, p_min);
+        
+        std::cout << "Vertices" << std::endl;
+        for (auto i : final.v) {
+            std::cout << i << " ";
+        }
+        std::cout << std::endl;
+        
+        std::cout << "Prize " << final.values.prize << std::endl;
+        std::cout << "Penalty " << final.values.penalty << std::endl;
+        */
+        
+        /*
         int running_num = 3; // Número de vezes que a instância será executada para tirar a média 
         double average_time = 0;
         std::chrono::steady_clock::time_point begin;
@@ -545,11 +564,11 @@ int main (int argc, char *argv[]) {
             std::cout << "Total prizes\n  " << r.values.prize << "\nTotal penalties\n  " << r.values.penalty << "\n";
             std::cout << "Average execution time on " << running_num << " executions (ms)\n  " << average_time << std::endl;
         }
+    
+    */
     } else {
         std::cout << "Please, inform the input file name on execution!\n";
         return EXIT_FAILURE;
-    }
-    */
     }
 
     //TESTE DO VNS E FUNÇÃO neighbor
