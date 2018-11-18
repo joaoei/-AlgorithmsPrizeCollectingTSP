@@ -62,7 +62,7 @@ bool is_on_list (
     return is_element;
 }
 
-
+/*
 solution grasp_vns (
     const std::vector<int> &prizes, 
     const std::vector<int> &penalties, 
@@ -106,6 +106,7 @@ solution grasp_vns (
         prize_min
     );
 }
+*/
 
 // Metaheurística ADD_STEP
 solution add_step(
@@ -125,7 +126,7 @@ solution add_step(
     // Deixando valor 1 apenas nas posições do vector onde o vértice não está na solução
     for (int i = 0; i < s.v.size() - 1; ++i)
     {
-        int num_v_sol = s.v[i]
+        int num_v_sol = s.v[i];
         vertices_not_on_solution[num_v_sol] = 0;
     }
 
@@ -136,7 +137,7 @@ solution add_step(
     int max_positive_econom = 0;
     int v_max_econom = -1;
     int v1_insert = -1;
-    for (int i = 0; i < vertices_not_on_solution; ++i)
+    for (int i = 0; i < vertices_not_on_solution.size(); ++i)
     {
         if (vertices_not_on_solution[i] == 0) continue;
 
@@ -166,7 +167,7 @@ solution add_step(
     for (int i = 0; i < s.v.size(); ++i)
     {
         new_v_solution.push_back(s.v[i]);
-        if (!did_insert_v && s.v.[i] == v1_insert) { 
+        if (!did_insert_v && s.v[i] == v1_insert) { 
             new_v_solution.push_back(v_max_econom);
             did_insert_v = true; 
         }
@@ -199,7 +200,7 @@ solution drop_step(
         int prev_to_curr_edge_cost = travel_cost[ s.v[i-1] ][ s.v[i] ];
         int curr_to_next_edge_cost = travel_cost[ s.v[i] ][ s.v[i+1] ];
         int prev_to_next_edge_cost = travel_cost[ s.v[i-1] ][ s.v[i+1] ];
-        int curr_penalty = penalties[ s.v[j] ];
+        int curr_penalty = penalties[ s.v[i] ];
         curr_econom = prev_to_curr_edge_cost + curr_to_next_edge_cost - prev_to_next_edge_cost - curr_penalty;
 
         if (curr_econom > max_positive_econom)
@@ -218,7 +219,7 @@ solution drop_step(
     std::vector<int> new_v_solution;
     for (int i = 1; i < s.v.size() - 1; ++i)
     {
-        if (s.v.[i] == v_max_econom) { 
+        if (s.v[i] == v_max_econom) { 
             continue;
         }
         new_v_solution.push_back(s.v[i]);
@@ -230,53 +231,10 @@ solution drop_step(
     return s;
 }
 
-solution VNS ( 
-    solution s,
-    int maxIt, 
-    const std::vector<int> &prizes, 
-    const std::vector<int> &penalties, 
-    const std::vector<std::vector<int>> &travel_cost,
-    const double &prize_min) 
-{
-    int iterations = 0;
-    int nhbd_num = 5;
-
-    while (iterations < maxIt) {
-        int k = 1;
-        
-        while (k <= nhbd_num) {
-            // Selecione um vizinho s_1 qualquer da vizinhança N_k(s)
-            std::vector<int> neighbor_v = neighbor(s.v, k, prizes);
-            v_tuple neighbor_v_tuple = calc_prize_and_penalties(prizes, penalties, travel_cost, neighbor_v);
-
-            // Se for uma solução inválida, vá para próximo método de vizinhança
-            if (neighbor_v_tuple.prize < prize_min) {
-                k++;
-                continue;
-            }
-
-            solution s_neighbor = {neighbor_v, neighbor_v_tuple};
-            
-            // VND no vizinho obtido no passo anterior
-            solution s_2 = VND(s_neighbor, prizes, penalties, travel_cost, prize_min);
-            
-            if ( (s_2.values.prize >= prize_min) && s_2.values.penalty < s.values.penalty) {
-                s = s_2;
-                k = 1;
-            } else {
-                k++;
-            }
-        }
-        iterations++;
-    }
-
-    return s;
-}
-
 std::vector<int> neighbor(
     std::vector<int> s, 
     int nbhd,
-    std::vector<int> &prizes) 
+    const std::vector<int> &prizes) 
 {
     std::vector<std::vector<int>> solutions;
 
@@ -353,21 +311,21 @@ solution VND (
     const std::vector<std::vector<int>> &travel_cost,
     const double &prize_min) 
 {
-    refine_num = 3
-    k = 0;
+    int refine_num = 3;
+    int k = 0;
     solution s_prime;
-    while (k < r) {
+    while (k < refine_num) {
         s_prime = s;
         if (k == 0) { // SeqDropSeqAdd
             int num_v_sol;
             do {
                 num_v_sol = s_prime.v.size();
                 s_prime = drop_step(s_prime, prizes, penalties, travel_cost, prize_min);
-            } while (num_v_sol > s.size());
+            } while (num_v_sol > s.v.size());
             do {
                 num_v_sol = s_prime.v.size();
                 s_prime = add_step(s_prime, prizes, penalties, travel_cost, prize_min);
-            } while (num_v_sol < s.size());
+            } while (num_v_sol < s.v.size());
 
         } else if (k == 1) { // 2-Optimal
             int min_penalty_after_edge_change = s_prime.values.penalty;
@@ -376,7 +334,7 @@ solution VND (
 
             for (int i = 0; i < s_prime.v.size() - 3; ++i)
             {
-                for(int j = i + 2; j < s_prime.v.size() - 1) 
+                for(int j = i + 2; j < s_prime.v.size() - 1; ++j) 
                 {
                     int new_penalty = s_prime.values.penalty;
                     new_penalty -= travel_cost[s_prime.v[i]][s_prime.v[i+1]]; // Retirando custo da aresta 1
@@ -395,13 +353,13 @@ solution VND (
                 index_first_edge >= 0 &&
                 index_first_edge < s_prime.v.size() &&
                 index_second_edge > index_first_edge &&
-                index_second_edge < s_prime.v.size)
+                index_second_edge < s_prime.v.size())
             {
                 // Atualizando sequência de vértices após uma troca de 2 arestas com economia de penalidades
                 std::vector<int> new_v = s_prime.v;
-                int index_update = index_first_edge + 1
-                int last_index_update = index_second_edge
-                int reverse_index = index_second_edge
+                int index_update = index_first_edge + 1;
+                int last_index_update = index_second_edge;
+                int reverse_index = index_second_edge;
                 while(index_update <= last_index_update) {
                     new_v[index_update] = s_prime.v[reverse_index];
                     index_update++;
@@ -428,8 +386,51 @@ solution VND (
     return s;
 }
 
+solution VNS ( 
+    solution s,
+    int maxIt, 
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min) 
+{
+    int iterations = 0;
+    int nhbd_num = 5;
+
+    while (iterations < maxIt) {
+        int k = 1;
+        
+        while (k <= nhbd_num) {
+            // Selecione um vizinho s_1 qualquer da vizinhança N_k(s)
+            std::vector<int> neighbor_v = neighbor(s.v, k, prizes);
+            v_tuple neighbor_v_tuple = calc_prize_and_penalties(prizes, penalties, travel_cost, neighbor_v);
+
+            // Se for uma solução inválida, vá para próximo método de vizinhança
+            if (neighbor_v_tuple.prize < prize_min) {
+                k++;
+                continue;
+            }
+
+            solution s_neighbor = {neighbor_v, neighbor_v_tuple};
+            
+            // VND no vizinho obtido no passo anterior
+            solution s_2 = VND(s_neighbor, prizes, penalties, travel_cost, prize_min);
+            
+            if ( (s_2.values.prize >= prize_min) && s_2.values.penalty < s.values.penalty) {
+                s = s_2;
+                k = 1;
+            } else {
+                k++;
+            }
+        }
+        iterations++;
+    }
+
+    return s;
+}
+
 int main (int argc, char *argv[]) {
-/*
+
     if (argc > 1) {
         std::string file_name = argv[1];
         std::ifstream infile(file_name);
@@ -499,7 +500,8 @@ int main (int argc, char *argv[]) {
             }
             curr_num = edges[i].size();
         }
-
+        
+        /*
         ///////////////////////////////////////////////////////
         std::vector<int> partial_sltn (1, 0);
 
@@ -547,9 +549,11 @@ int main (int argc, char *argv[]) {
         std::cout << "Please, inform the input file name on execution!\n";
         return EXIT_FAILURE;
     }
- */  
+    */
+    }
 
     //TESTE DO VNS E FUNÇÃO neighbor
+    /*
     int myints[] = {0, 1, 3, 5, 0};
     std::vector<int> fifth (myints, myints + sizeof(myints) / sizeof(int) );
 
@@ -560,6 +564,7 @@ int main (int argc, char *argv[]) {
         std::cout << ' ' << *it;
 
     std::cout << '\n';
+    */
 
     return 0;
 }
