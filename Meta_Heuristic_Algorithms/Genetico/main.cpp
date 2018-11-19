@@ -16,11 +16,16 @@ struct solution {
     v_tuple values;
 };
 
+bool sort_function (solution i, solution j) { 
+    return (i.values.penalty < j.values.penalty); 
+}
+
 v_tuple calc_prize_and_penalties (
     const std::vector<int> &prizes, 
     const std::vector<int> &penalties, 
     const std::vector<std::vector<int>> &travel_cost,
-    const std::vector<int> &result_p) {
+    const std::vector<int> &result_p) 
+{
 
     int sum_penalties = 0;
     int sum_prizes   = 0;
@@ -76,8 +81,8 @@ void alg_genetico (
      * Gerando randomicamente qual vertice inserir no caminho
      */
 
-    //std::vector<solution> population;
-    std::vector<std::vector<int>> population;
+    std::vector<solution> population;
+    //std::vector<std::vector<int>> population;
 
     // Cria vetor com todos as cidades
     std::vector<int> cities (prizes.size()-1, 0);
@@ -104,17 +109,50 @@ void alg_genetico (
         }
 
         // Adiciona a solução criada na população
-        population.push_back(solution_n);
+        solution s;
+        s.v = solution_n;
+        s.values = calc_prize_and_penalties (prizes, penalties, travel_cost, solution_n);
+        
+        population.push_back(s);
     }
+
 
     //while (condicao_de_parada) {
         // CALCULA O PREMIO E PENALIDADE DE CADA SOLUÇÃO DA POPULAÇÃO
         
+        //Ordena pelo prize
+        std::sort (population.begin(), population.end(), sort_function);
+
         /*
          * SELECIONA OS PAIS PARA REPRODUZIR
          * Selecionar as 4 melhores soluções e outras 2 aleatoriamente
-         */ 
+         */
 
+        int s1 = rand()%(population.size() - 4) + 4; 
+
+        int s2 = s1;
+        while (s1 == s2) {
+            s2 = rand()%(population.size() - 4) + 4; 
+        }
+
+        if (s1 < s2) {
+            population.erase (population.begin()+s2, population.end());
+            population.erase (population.begin()+s1, population.begin()+s2-1);
+            population.erase (population.begin()+4,  population.begin()+s1-1);
+        } else {
+            population.erase (population.begin()+s1, population.end());
+            population.erase (population.begin()+s2, population.begin()+s1-1);
+            population.erase (population.begin()+4,  population.begin()+s2-1);
+        }
+
+/*
+        for (int i = 0; i < population.size(); i++) {
+            for (std::vector<int>::iterator it = population[i].v.begin(); it != population[i].v.end(); ++it)
+                std::cout << ' ' << *it;
+            std::cout << " Prize: " <<  population[i].values.prize << " Penaltys: " <<  population[i].values.penalty <<  '\n';
+        }
+        std::cout << '\n';
+*/
         /* RECOMBINAR (TROCA DE MATERIAIS GENETICOS DOS PAIS)
          * Combina todos os pais ou se escolhe os pares?
          */
@@ -132,143 +170,24 @@ void alg_genetico (
     //}
 
     // RETORNE MELHOR SOLUÇÃO
-
-    for (int i = 0; i < population.size(); i++) {
-        for (std::vector<int>::iterator it = population[i].begin(); it != population[i].end(); ++it)
-            std::cout << ' ' << *it;
-        std::cout << '\n';
-    }
-
-    std::cout << '\n';
 }
 
 
 int main (int argc, char *argv[]) {
 /*
-    if (argc > 1) {
-        std::string file_name = argv[1];
-        std::ifstream infile(file_name);
-        if(!infile) {
-            std::cout << ">>> Unable to open file!\n";
-            return EXIT_FAILURE;
-        }
-
-        // Pega o nome do arquivo sem diretórios
-        std::string file_name_no_path = file_name;
-        size_t i = file_name.rfind('/', file_name.length());
-        if (i != std::string::npos) {
-          file_name_no_path = file_name.substr(i+1, file_name.length() - i);
-        }
-
-        std::string line;
-        if (file_name_no_path[0] == 'v') { // instancias-1
-            std::getline(infile, line);
-            std::getline(infile, line);
-        }
-
-        int num_vertices = 0;
-        // Lê valores dos prêmios
-        std::getline(infile, line);
-        std::getline(infile, line);
-        std::istringstream prizes_line(line);
-        int prize;
-        std::vector<int> prizes;
-        while (prizes_line >> prize) {
-            prizes.push_back(prize);
-        }
-        num_vertices = prizes.size();
-
-        // Lê valores das penalidades
-        std::getline(infile, line);
-        std::getline(infile, line);
-        std::getline(infile, line);
-        std::istringstream penalties_line(line);
-        int penalty; // valor do vértice
-        std::vector<int> penalties;
-        while (penalties_line >> penalty) {
-            penalties.push_back(penalty);
-        }
-
-        if (prizes.size() != penalties.size()) {
-            std::cout << ">>> Invalid instance: number of prizes and penalties don't match!" << '\n';
-            return EXIT_FAILURE;
-        }
-
-        // Ler valores dos vértices
-        std::getline(infile, line);
-        std::getline(infile, line);
-        std::vector<std::vector<int>> edges(num_vertices);
-        int edge; // valor do vértice
-        int curr_num = 0;
-        for (int i = 0; i < num_vertices; ++i) {
-            std::getline(infile, line);
-            std::istringstream edges_line(line);
-            while(edges_line >> edge) {
-                edges[i].push_back(edge);
-            }
-            if (i > 0) {
-                if (curr_num != edges[i].size()) {
-                    std::cout << ">>> Invalid instance: incorrect number of edges!" << '\n';
-                    return EXIT_FAILURE;
-                }
-            }
-            curr_num = edges[i].size();
-        }
-
-        ///////////////////////////////////////////////////////
-        std::vector<int> partial_sltn (1, 0);
-
-        solution up_limit;
-        double alpha = 0.5; // Alfa padrão
-        if (argc > 2) { // Passou valor do alfa
-            alpha = std::stod(argv[2]);
-        }
-        int prizes_sum = 0;
-        for (int i = 0; i < prizes.size(); ++i) {
-            prizes_sum += prizes[i];
-        }
-        double p_min = alpha * prizes_sum;
-        
-        int running_num = 3; // Número de vezes que a instância será executada para tirar a média 
-        double average_time = 0;
-        std::chrono::steady_clock::time_point begin;
-        std::chrono::steady_clock::time_point end;
-        solution r;
-        for(int i = 0; i < running_num; i++) {
-            // Medindo o tempo de execução
-            begin = std::chrono::steady_clock::now();
-            // r = branch_and_bound_alg(prizes, penalties, edges, partial_sltn, up_limit, prizes.size()-1, p_min);
-            end = std::chrono::steady_clock::now();
-            // average_time += (std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count()) / running_num;
-        }
-
-        if (r.values.prize == prizes[0] && r.values.penalty == penalties[0]) {
-            std::cout << "\nNo solution found for the input instance!";
-        } else {
-            std::cout << ">>> Branch and Bound\n";
-            std::cout << "Number of vertices\n  " << num_vertices << "\n";
-            std::cout << "Minimum prize (alpha = " << alpha << ")\n  " << p_min << "\n\n";
-
-            std::cout << "Travel\n  ";
-            for (int i = 0; i < r.v.size() - 1; i++) {
-                std::cout << "(" << r.v[i] << "," << r.v[i+1] << ") ";  
-            }
-            std::cout << "\n";
-
-            std::cout << "Total prizes\n  " << r.values.prize << "\nTotal penalties\n  " << r.values.penalty << "\n";
-            std::cout << "Average execution time on " << running_num << " executions (ms)\n  " << average_time << std::endl;
-        }
-    } else {
-        std::cout << "Please, inform the input file name on execution!\n";
-        return EXIT_FAILURE;
-    }
 */  
-    int myints[] = {0, 1, 2, 3};
-    std::vector<int> pri (myints, myints + sizeof(myints) / sizeof(int) );
-    std::vector<int> pen (myints, myints + sizeof(myints) / sizeof(int) );
-    std::vector<std::vector<int>> t (2, std::vector<int> (3, 0));
+    int a_pri[] = {0, 5, 7, 6};
+    int a_pen[] = {900, 35, 2, 20};
+    std::vector<int> pri (a_pri, a_pri + sizeof(a_pri) / sizeof(int) );
+    std::vector<int> pen (a_pen, a_pen + sizeof(a_pen) / sizeof(int) );
     
-    alg_genetico(pri, pen, t, 10);
+    std::vector<std::vector<int>> t (4, std::vector<int> (4, 0));
+    t[0][0] = 0;  t[0][1] = 13; t[0][2] = 5;  t[0][3] = 20;
+    t[1][0] = 13; t[1][1] = 0;  t[1][2] = 7;  t[1][3] = 10;
+    t[2][0] = 5;  t[2][1] = 7;  t[2][2] = 0;  t[2][3] = 17;
+    t[3][0] = 20; t[3][1] = 10; t[3][2] = 17; t[3][3] = 0;
+    
+    alg_genetico(pri, pen, t, 7);
 
     return 0;
 }
