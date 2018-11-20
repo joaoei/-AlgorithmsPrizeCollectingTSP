@@ -561,53 +561,44 @@ solution grasp_vns (
     initial_solution.values.penalty += travel_cost[initial_solution.v.back()][0] - penalties[0];
     initial_solution.v.push_back(0);
     
-    return initial_solution;
-    /*
+    for (auto k : initial_solution.v) {
+        std::cout << k << " ";
+    }
+    std::cout << "--> " << initial_solution.values.prize << " " << initial_solution.values.penalty << std::endl;
+    
     solution final_sol = initial_solution;
     // Fase de construção da solução
     for (int i = 0; i < max_ite; i++) {
         int random_index;
         solution current_sol = final_sol;
         std::vector<solution> RCL = add_step_candidate_list(final_sol, prizes, penalties, travel_cost, prize_min);
-        std::cout << "ANTES WHILE" << std::endl;
-        while (!RCL.empty()) {
-                std::cout << ">>> size " << RCL.size() << std::endl;
-            srand((unsigned)time(0));
-                std::cout << ">>> 1" << std::endl;
-            random_index = rand() % (RCL.size());
-                std::cout << ">>> 2" << std::endl;
-                for (auto i : RCL) {
-                    for (auto k : i.v) {
-                        std::cout << k << " ";
-                    }
-                    std::cout << std::endl;
-                }
-            current_sol = RCL[random_index];
-                std::cout << ">>> 3" << std::endl;
-            RCL = add_step_candidate_list(current_sol, prizes, penalties, travel_cost, prize_min);
-                std::cout << ">>> 4" << std::endl;
-        }
-        std::cout << "DEPOIS WHILE" << std::endl;
 
+        while (!RCL.empty()) {
+            srand((unsigned)time(0));
+            random_index = rand() % (RCL.size());
+            current_sol = RCL[random_index];
+            RCL = add_step_candidate_list(current_sol, prizes, penalties, travel_cost, prize_min);
+        }
+    
         if (current_sol.values.penalty < final_sol.values.penalty ) {
             std::cout << "ECONOM" << std::endl;
             final_sol = current_sol;
         }
     }
     
-    return final_sol;
-    */
-
-    /*
+    for (auto k : final_sol.v) {
+        std::cout << k << " ";
+    }
+    std::cout << "--> " << final_sol.values.prize << " " << final_sol.values.penalty << std::endl;
+    
     return VNS(
-        solucao,
-        100,
+        1000,
+        final_sol,
         prizes,
         penalties, 
         travel_cost,
         prize_min
     );
-    */
 }
 
 int main (int argc, char *argv[]) {
@@ -729,7 +720,11 @@ int main (int argc, char *argv[]) {
         std::cout << std::endl;
         */
         
-        solution sol = grasp_vns(10, prizes, penalties, edges, p_min);
+        solution sol = grasp_vns(1000, prizes, penalties, edges, p_min);
+        for (auto k : sol.v) {
+            std::cout << k << " ";
+        }
+        std::cout << "--> " << sol.values.prize << " " << sol.values.penalty << std::endl;
         
         /*
         int running_num = 3; // Número de vezes que a instância será executada para tirar a média 
