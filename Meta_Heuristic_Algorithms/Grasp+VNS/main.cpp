@@ -62,51 +62,9 @@ bool is_on_list (
     return is_element;
 }
 
-/*
-solution grasp_vns (
-    const std::vector<int> &prizes, 
-    const std::vector<int> &penalties, 
-    const std::vector<std::vector<int>> &travel_cost,
-    const double &prize_min) {
-    // solução = vazio
-    // penalidade = infinito
-
-    // FASE DE CONSTRUÇÃO
-    for (int i = 0; i < maxInter; i++) {
-        //s - solução parcial = vazio
-        // 0 inserido como nó inicial em s 
-        
-        // todo k não pertencente a s
-        for (int i2 = 0; i2 < nos.size(); i2++) {
-            // calcula a economia nas inserções
-        }
-
-        while (premio < premio_min || existe economia positiva) {
-            // LRC - Lista dos vertices com maior economia
-            // Dado um alfa selecionar os n mais economicos
-            // Selecionar um aleatoriamente
-            // s <- s U {v}
-            // Recalcula a economia nas inserções
-        }
-
-
-        if (penalidade(s) < penalidade(solucao) ) {
-            solucao = s;
-            penalidade(solucao) = penalidade(s)
-        }
-    }
-
-    
-    return VNS(
-        solucao,
-        3,
-        prizes,
-        penalties, 
-        travel_cost,
-        prize_min
-    );
+bool sort_penalties_desc (solution i, solution j) { 
+    return (i.values.penalty < j.values.penalty); 
 }
-*/
 
 // Metaheurística ADD_STEP
 solution add_step(
@@ -180,6 +138,88 @@ solution add_step(
     return s;
 }
 
+std::vector<solution> add_step_candidate_list(
+    solution s,
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min) 
+{
+    // Construção dos vértices que não fazem parte da rota da solução
+    std::vector<int> vertices_not_on_solution;
+    for (int i = 0; i < prizes.size(); ++i)
+    {
+        vertices_not_on_solution.push_back(1);
+    }
+
+    // Deixando valor 1 apenas nas posições do vector onde o vértice não está na solução
+    for (int i = 0; i < s.v.size() - 1; ++i)
+    {
+        int num_v_sol = s.v[i];
+        vertices_not_on_solution[num_v_sol] = 0;
+    }
+
+    /*
+     * Calcula a máxima economia positiva considerando a inserção de vértices que 
+     * não fazem parte da solução
+     */
+    int max_local_econom;
+    int v_max_econom;
+    int v1_insert;
+    std::vector<solution> solution_candidate_list;
+    for (int i = 0; i < vertices_not_on_solution.size(); ++i)
+    {
+        if (vertices_not_on_solution[i] == 0) continue;
+        
+        max_local_econom = 0;
+        v_max_econom = -1;
+        v1_insert = -1;
+
+        int curr_econom;
+        for (int j = 0; j < s.v.size() - 1; ++j)
+        {
+            int sol_edge_cost = travel_cost[ s.v[j] ][ s.v[j+1] ];
+            int v_penalty = penalties[i];
+            int v1_to_curr_v = travel_cost[ s.v[j] ][ i ];
+            int curr_v_to_v2 = travel_cost[ i ][s.v[j+1] ];
+            curr_econom = sol_edge_cost + v_penalty - v1_to_curr_v - curr_v_to_v2;
+            
+            if (curr_econom > max_local_econom)
+            {
+                max_local_econom = curr_econom;
+                v_max_econom = i;
+                v1_insert = s.v[j];
+            }
+        }
+        if (max_local_econom < 1) continue;
+        // Construindo nova solução com o novo vértice a ser inserido na rota
+        std::vector<int> new_v_solution;
+        v_tuple prize_and_penalty;
+        bool did_insert_v = false;
+        for (int j = 0; j < s.v.size(); ++j)
+        {
+            new_v_solution.push_back(s.v[j]);
+            if (!did_insert_v && s.v[j] == v1_insert) { 
+                new_v_solution.push_back(v_max_econom);
+                did_insert_v = true; 
+            }
+        }
+        prize_and_penalty.prize = s.values.prize + prizes[v_max_econom];
+        prize_and_penalty.penalty = s.values.penalty - max_local_econom;
+        
+        solution candidate_sol = {new_v_solution, prize_and_penalty};
+        
+        solution_candidate_list.push_back(candidate_sol);
+    }
+    
+    if (!solution_candidate_list.empty()) {
+        std::sort(solution_candidate_list.begin(), solution_candidate_list.end(), sort_penalties_desc);
+        int resize_num = (solution_candidate_list.size() > 4) ? 5 : solution_candidate_list.size();
+        solution_candidate_list.resize(resize_num);
+    }
+    
+    return solution_candidate_list;
+}
 
 // Metaheurística DROP_STEP
 solution drop_step(
@@ -439,6 +479,137 @@ solution VNS (
     return s;
 }
 
+/**
+ * Calcula o melhor vértice a ser inserido na solução a partir do vértice atual.
+ * 
+ * Calcula um coeficiente dado por 1 - (prêmio do próximo vértice em relação ao 
+ * prêmio mínimo). Esse coeficiente é multiplicado pelo custo da aresta já 
+ * descontando a penalidade do vértice a ser inserido.
+ * 
+ * O coeficiente calculado faz com que vértices com um prêmio maior e com 
+ * penalidade menor sejam considerados em primeiro lugar.
+ */
+solution best_next_v(
+    solution s,
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min) {
+    
+    int last_v = s.v.back();
+    int best_v = 0;
+    double best_eval = 1000000;
+    
+    // Construção dos vértices que não fazem parte da rota da solução
+    std::vector<int> vertices_not_on_solution;
+    for (int i = 0; i < prizes.size(); ++i)
+    {
+        vertices_not_on_solution.push_back(1);
+    }
+    
+    /**
+     * IMPORTANTE
+     * Considera-se que a solução ainda não está voltando para o vértice inicial, 
+     * portanto não é uma solução válida. 
+     * O presente método só é usado na construção de uma solução inicial, antes 
+     * de adicionar o vértice 0 no final da sequência de vértices.
+     */
+     
+    // Deixando valor 1 apenas nas posições do vector onde o vértice não está na solução
+    for (int i = 0; i < s.v.size(); ++i)
+    {
+        int num_v_sol = s.v[i];
+        vertices_not_on_solution[num_v_sol] = 0;
+    }
+    
+    // Calculando melhor vértice a inserir no final da solução
+    double curr_prize_coeff;
+    double curr_eval;
+    for (int i = 0; i < vertices_not_on_solution.size(); i++) {
+        if (vertices_not_on_solution[i] == 0) continue;
+        
+        curr_prize_coeff = 1 - (prizes[i] / prize_min);
+        curr_eval = (travel_cost[last_v][i] - penalties[i]) * curr_prize_coeff;
+        if (curr_eval < best_eval){
+            best_eval = curr_eval;
+            best_v = i;
+        }
+    }
+    
+    s.v.push_back(best_v);
+    s.values.prize += prizes[best_v];
+    s.values.penalty += (travel_cost[last_v][best_v] - penalties[best_v]);
+    return s;
+}
+
+solution grasp_vns (
+    const int max_ite,
+    const std::vector<int> &prizes, 
+    const std::vector<int> &penalties, 
+    const std::vector<std::vector<int>> &travel_cost,
+    const double &prize_min) {
+    
+    // Construindo solução inicial válida
+    std::vector<int> v{0};
+    solution initial_solution = {v, calc_prize_and_penalties(prizes, penalties, travel_cost, v)};
+    
+    while(initial_solution.values.prize < prize_min) {
+        initial_solution = best_next_v(initial_solution, prizes, penalties, travel_cost, prize_min);
+    }
+    
+    // Voltando ao vértice inicial e atualizando penalidades
+    initial_solution.values.penalty += travel_cost[initial_solution.v.back()][0] - penalties[0];
+    initial_solution.v.push_back(0);
+    
+    return initial_solution;
+    /*
+    solution final_sol = initial_solution;
+    // Fase de construção da solução
+    for (int i = 0; i < max_ite; i++) {
+        int random_index;
+        solution current_sol = final_sol;
+        std::vector<solution> RCL = add_step_candidate_list(final_sol, prizes, penalties, travel_cost, prize_min);
+        std::cout << "ANTES WHILE" << std::endl;
+        while (!RCL.empty()) {
+                std::cout << ">>> size " << RCL.size() << std::endl;
+            srand((unsigned)time(0));
+                std::cout << ">>> 1" << std::endl;
+            random_index = rand() % (RCL.size());
+                std::cout << ">>> 2" << std::endl;
+                for (auto i : RCL) {
+                    for (auto k : i.v) {
+                        std::cout << k << " ";
+                    }
+                    std::cout << std::endl;
+                }
+            current_sol = RCL[random_index];
+                std::cout << ">>> 3" << std::endl;
+            RCL = add_step_candidate_list(current_sol, prizes, penalties, travel_cost, prize_min);
+                std::cout << ">>> 4" << std::endl;
+        }
+        std::cout << "DEPOIS WHILE" << std::endl;
+
+        if (current_sol.values.penalty < final_sol.values.penalty ) {
+            std::cout << "ECONOM" << std::endl;
+            final_sol = current_sol;
+        }
+    }
+    
+    return final_sol;
+    */
+
+    /*
+    return VNS(
+        solucao,
+        100,
+        prizes,
+        penalties, 
+        travel_cost,
+        prize_min
+    );
+    */
+}
+
 int main (int argc, char *argv[]) {
 
     if (argc > 1) {
@@ -543,6 +714,22 @@ int main (int argc, char *argv[]) {
         std::cout << "Prize " << final.values.prize << std::endl;
         std::cout << "Penalty " << final.values.penalty << std::endl;
         */
+        
+        /*
+        // Testando CANDIDATES
+        solution sol = grasp_vns(10, prizes, penalties, edges, p_min);
+        
+        std::cout << "Vertices ";
+        for (auto s : sol.v) {
+            std::cout << s << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "Prize " << sol.values.prize << std::endl;
+        std::cout << "Penalty " << sol.values.penalty << std::endl;
+        std::cout << std::endl;
+        */
+        
+        solution sol = grasp_vns(10, prizes, penalties, edges, p_min);
         
         /*
         int running_num = 3; // Número de vezes que a instância será executada para tirar a média 
