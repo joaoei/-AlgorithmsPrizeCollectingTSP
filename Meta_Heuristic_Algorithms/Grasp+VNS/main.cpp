@@ -214,8 +214,10 @@ std::vector<solution> add_step_candidate_list(
     
     if (!solution_candidate_list.empty()) {
         std::sort(solution_candidate_list.begin(), solution_candidate_list.end(), sort_penalties_desc);
-        int resize_num = (solution_candidate_list.size() > 4) ? 5 : solution_candidate_list.size();
-        solution_candidate_list.resize(resize_num);
+        // int resize_num = (solution_candidate_list.size() > 4) ? 5 : solution_candidate_list.size();
+        if (solution_candidate_list.size() > (prizes.size() / 5)) {
+            solution_candidate_list.resize(prizes.size() / 5);
+        }
     }
     
     return solution_candidate_list;
@@ -428,19 +430,21 @@ solution VND (
 }
 
 solution VNS ( 
-    int maxIt, 
+    int max_seconds, 
     solution s,
     const std::vector<int> &prizes, 
     const std::vector<int> &penalties, 
     const std::vector<std::vector<int>> &travel_cost,
     const double &prize_min) 
 {
-    int iterations = 0;
+    double max_seconds_milli = max_seconds * 1000;
     int nhbd_num = 3;
     solution previous_sol;
     solution new_sol;
+    std::chrono::steady_clock::time_point time_count;
+    time_count = std::chrono::steady_clock::now();
     
-    while (iterations < maxIt) {
+    while ((std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - time_count).count()) < max_seconds_milli) {
         int k = 1;
         previous_sol = s;
         
@@ -470,9 +474,7 @@ solution VNS (
         
         new_sol = s;
         if(new_sol.values.penalty < previous_sol.values.penalty){
-            continue;
-        } else {
-            iterations++;
+            time_count = std::chrono::steady_clock::now();;
         }
     }
 
@@ -499,7 +501,7 @@ solution best_next_v(
     int last_v = s.v.back();
     int best_v = 0;
     double best_eval = 1000000;
-    
+
     // Construção dos vértices que não fazem parte da rota da solução
     std::vector<int> vertices_not_on_solution;
     for (int i = 0; i < prizes.size(); ++i)
@@ -523,13 +525,15 @@ solution best_next_v(
     }
     
     // Calculando melhor vértice a inserir no final da solução
-    double curr_prize_coeff;
+    // double curr_prize_coeff;
     double curr_eval;
     for (int i = 0; i < vertices_not_on_solution.size(); i++) {
         if (vertices_not_on_solution[i] == 0) continue;
         
-        curr_prize_coeff = 1 - (prizes[i] / prize_min);
-        curr_eval = (travel_cost[last_v][i] - penalties[i]) * curr_prize_coeff;
+        // curr_prize_coeff = 1 - (prizes[i] / prize_min);
+        // curr_eval = penalties[i];
+        curr_eval = (travel_cost[last_v][i] - penalties[i]);
+        // curr_eval = (travel_cost[last_v][i] - penalties[i]) * curr_prize_coeff;
         if (curr_eval < best_eval){
             best_eval = curr_eval;
             best_v = i;
@@ -544,6 +548,7 @@ solution best_next_v(
 
 solution grasp_vns (
     const int max_ite,
+    const int max_seconds,
     const std::vector<int> &prizes, 
     const std::vector<int> &penalties, 
     const std::vector<std::vector<int>> &travel_cost,
@@ -561,6 +566,7 @@ solution grasp_vns (
     initial_solution.values.penalty += travel_cost[initial_solution.v.back()][0] - penalties[0];
     initial_solution.v.push_back(0);
     
+    std::cout << "INITIAL ";
     for (auto k : initial_solution.v) {
         std::cout << k << " ";
     }
@@ -581,18 +587,19 @@ solution grasp_vns (
         }
     
         if (current_sol.values.penalty < final_sol.values.penalty ) {
-            std::cout << "ECONOM" << std::endl;
+            // std::cout << "ECONOM" << std::endl;
             final_sol = current_sol;
         }
     }
     
+    std::cout << "GRASP ";
     for (auto k : final_sol.v) {
         std::cout << k << " ";
     }
     std::cout << "--> " << final_sol.values.prize << " " << final_sol.values.penalty << std::endl;
     
     return VNS(
-        1000,
+        max_seconds,
         final_sol,
         prizes,
         penalties, 
@@ -687,40 +694,8 @@ int main (int argc, char *argv[]) {
         }
         double p_min = alpha * prizes_sum;
         
-        /*
-        // TESTANDO VNS
-        // instância backtracking v12.txt
-        std::vector<int> vertices {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0};
-        v_tuple tuple = {525, 6997};
-        solution sol = {vertices, tuple};
-        
-        solution final = VNS(100, sol, prizes, penalties, edges, p_min);
-        
-        std::cout << "Vertices" << std::endl;
-        for (auto i : final.v) {
-            std::cout << i << " ";
-        }
-        std::cout << std::endl;
-        
-        std::cout << "Prize " << final.values.prize << std::endl;
-        std::cout << "Penalty " << final.values.penalty << std::endl;
-        */
-        
-        /*
-        // Testando CANDIDATES
-        solution sol = grasp_vns(10, prizes, penalties, edges, p_min);
-        
-        std::cout << "Vertices ";
-        for (auto s : sol.v) {
-            std::cout << s << " ";
-        }
-        std::cout << std::endl;
-        std::cout << "Prize " << sol.values.prize << std::endl;
-        std::cout << "Penalty " << sol.values.penalty << std::endl;
-        std::cout << std::endl;
-        */
-        
-        solution sol = grasp_vns(1000, prizes, penalties, edges, p_min);
+        solution sol = grasp_vns(4000, 10, prizes, penalties, edges, p_min);
+        std::cout << "VNS+VND ";
         for (auto k : sol.v) {
             std::cout << k << " ";
         }
@@ -762,20 +737,6 @@ int main (int argc, char *argv[]) {
         std::cout << "Please, inform the input file name on execution!\n";
         return EXIT_FAILURE;
     }
-
-    //TESTE DO VNS E FUNÇÃO neighbor
-    /*
-    int myints[] = {0, 1, 3, 5, 0};
-    std::vector<int> fifth (myints, myints + sizeof(myints) / sizeof(int) );
-
-    std::vector<int> s (7, 2);
-    std::vector<int> resp = neighbor(fifth, 1, s);
-
-    for (std::vector<int>::iterator it = resp.begin(); it != resp.end(); ++it)
-        std::cout << ' ' << *it;
-
-    std::cout << '\n';
-    */
 
     return 0;
 }
