@@ -474,7 +474,7 @@ solution VNS (
         
         new_sol = s;
         if(new_sol.values.penalty < previous_sol.values.penalty){
-            time_count = std::chrono::steady_clock::now();;
+            time_count = std::chrono::steady_clock::now();
         }
     }
 
