@@ -262,23 +262,131 @@ solution alg_genetico (
 
 
 int main (int argc, char *argv[]) {
-    //TESTES
-    int a_pri[] = {0, 5, 7, 6};
-    int a_pen[] = {900, 35, 2, 20};
-    std::vector<int> pri (a_pri, a_pri + sizeof(a_pri) / sizeof(int) );
-    std::vector<int> pen (a_pen, a_pen + sizeof(a_pen) / sizeof(int) );
     
-    std::vector<std::vector<int>> t (4, std::vector<int> (4, 0));
-    t[0][0] = 0;  t[0][1] = 5; t[0][2] = 5;  t[0][3] = 20;
-    t[1][0] = 5; t[1][1] = 0;  t[1][2] = 7;  t[1][3] = 10;
-    t[2][0] = 5;  t[2][1] = 7;  t[2][2] = 0;  t[2][3] = 17;
-    t[3][0] = 20; t[3][1] = 10; t[3][2] = 17; t[3][3] = 0;
-    
-    solution s = alg_genetico(10, pri, pen, t, 7);
+    if (argc > 1) {
+        std::string file_name = argv[1];
+        std::ifstream infile(file_name);
+        if(!infile) {
+            std::cout << ">>> Unable to open file!\n";
+            return EXIT_FAILURE;
+        }
 
-    for (std::vector<int>::iterator it = s.v.begin(); it != s.v.end(); ++it)
-        std::cout << ' ' << *it;
-    std::cout << " - Prize: " << s.values.prize << " Penalty: " << s.values.penalty << '\n';
+        // Pega o nome do arquivo sem diretórios
+        std::string file_name_no_path = file_name;
+        size_t i = file_name.rfind('/', file_name.length());
+        if (i != std::string::npos) {
+          file_name_no_path = file_name.substr(i+1, file_name.length() - i);
+        }
+
+        std::string line;
+        if (file_name_no_path[0] == 'v') { // instancias-1
+            std::getline(infile, line);
+            std::getline(infile, line);
+        }
+
+        int num_vertices = 0;
+        // Lê valores dos prêmios
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::istringstream prizes_line(line);
+        int prize;
+        std::vector<int> prizes;
+        while (prizes_line >> prize) {
+            prizes.push_back(prize);
+        }
+        num_vertices = prizes.size();
+
+        // Lê valores das penalidades
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::istringstream penalties_line(line);
+        int penalty; // valor do vértice
+        std::vector<int> penalties;
+        while (penalties_line >> penalty) {
+            penalties.push_back(penalty);
+        }
+
+        if (prizes.size() != penalties.size()) {
+            std::cout << ">>> Invalid instance: number of prizes and penalties don't match!" << '\n';
+            return EXIT_FAILURE;
+        }
+
+        // Ler valores dos vértices
+        std::getline(infile, line);
+        std::getline(infile, line);
+        std::vector<std::vector<int>> edges(num_vertices);
+        int edge; // valor do vértice
+        int curr_num = 0;
+        for (int i = 0; i < num_vertices; ++i) {
+            std::getline(infile, line);
+            std::istringstream edges_line(line);
+            while(edges_line >> edge) {
+                edges[i].push_back(edge);
+            }
+            if (i > 0) {
+                if (curr_num != edges[i].size()) {
+                    std::cout << ">>> Invalid instance: incorrect number of edges!" << '\n';
+                    return EXIT_FAILURE;
+                }
+            }
+            curr_num = edges[i].size();
+        }
+        
+        ///////////////////////////////////////////////////////
+        
+        double alpha = 0.5; // Alfa padrão
+        if (argc > 2) { // Passou valor do alfa
+            alpha = std::stod(argv[2]);
+        }
+        int prizes_sum = 0;
+        for (int i = 0; i < prizes.size(); ++i) {
+            prizes_sum += prizes[i];
+        }
+        double p_min = alpha * prizes_sum;
+        
+        int running_num = 1; // Número de vezes que a instância será executada para tirar a média 
+        int seconds_genetic = 30;
+        double average_time = 0;
+        std::chrono::steady_clock::time_point begin;
+        std::chrono::steady_clock::time_point end;
+        solution sol;
+        
+        for(int i = 0; i < running_num; i++) {
+            // Medindo o tempo de execução
+            begin = std::chrono::steady_clock::now();
+            sol = alg_genetico(seconds_genetic, prizes, penalties, edges, p_min);
+            end = std::chrono::steady_clock::now();
+            average_time += ((std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count()) - (seconds_genetic * 1000)) / running_num;
+        }
+        
+        // std::cout << "VNS+VND ";
+        // for (auto k : sol.v) {
+        //     std::cout << k << " ";
+        // }
+        // std::cout << "--> " << sol.values.prize << " " << sol.values.penalty << std::endl;
+        
+        if (sol.values.prize == prizes[0] && sol.values.penalty == penalties[0]) {
+            std::cout << "\nNo solution found for the input instance!";
+        } else {
+            std::cout << ">>> Genetic Algorithm\n";
+            std::cout << "Number of vertices\n  " << num_vertices << "\n";
+            std::cout << "Minimum prize (alpha = " << alpha << ")\n  " << p_min << "\n\n";
+
+            std::cout << "Travel\n  ";
+            for (int i = 0; i < sol.v.size() - 1; i++) {
+                std::cout << "(" << sol.v[i] << "," <<sol.v[i+1] << ") ";  
+            }
+            std::cout << "\n";
+
+            std::cout << "Total prizes\n  " << sol.values.prize << "\nTotal penalties\n  " << sol.values.penalty << "\n";
+            std::cout << "Average execution time on " << running_num << " executions (ms)\n  " << average_time << std::endl;
+        }
+    
+    } else {
+        std::cout << "Please, inform the input file name on execution!\n";
+        return EXIT_FAILURE;
+    }
 
     return 0;
 }
