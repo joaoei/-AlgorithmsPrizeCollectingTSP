@@ -214,7 +214,6 @@ std::vector<solution> add_step_candidate_list(
     
     if (!solution_candidate_list.empty()) {
         std::sort(solution_candidate_list.begin(), solution_candidate_list.end(), sort_penalties_desc);
-        // int resize_num = (solution_candidate_list.size() > 4) ? 5 : solution_candidate_list.size();
         if (solution_candidate_list.size() > (prizes.size() / 5)) {
             solution_candidate_list.resize(prizes.size() / 5);
         }
@@ -603,24 +602,6 @@ solution grasp_vns (
     const std::vector<std::vector<int>> &travel_cost,
     const double &prize_min) {
     
-    // // Construindo solução inicial válida
-    // std::vector<int> v{0};
-    // solution initial_solution = {v, calc_prize_and_penalties(prizes, penalties, travel_cost, v)};
-    
-    // while(initial_solution.values.prize < prize_min) {
-    //     initial_solution = best_next_v(initial_solution, prizes, penalties, travel_cost, prize_min);
-    // }
-    
-    // // Voltando ao vértice inicial e atualizando penalidades
-    // initial_solution.values.penalty += travel_cost[initial_solution.v.back()][0] - penalties[0];
-    // initial_solution.v.push_back(0);
-    
-    // std::cout << "INITIAL ";
-    // for (auto k : initial_solution.v) {
-    //     std::cout << k << " ";
-    // }
-    // std::cout << "--> " << initial_solution.values.prize << " " << initial_solution.values.penalty << std::endl;
-    
     solution initial_solution;
     solution current_sol;
     solution final_sol;
@@ -630,6 +611,7 @@ solution grasp_vns (
     
     std::vector<int> v0{0};
     v_tuple initialize_prizes_and_penalties = calc_prize_and_penalties(prizes, penalties, travel_cost, v0);
+    
     // Fase de construção da solução
     for (int i = 0; i < max_ite; i++) {
         
@@ -661,16 +643,9 @@ solution grasp_vns (
         }
     
         if (current_sol.values.penalty < final_sol.values.penalty ) {
-            // std::cout << "ECONOM" << std::endl;
             final_sol = current_sol;
         }
     }
-    
-    // std::cout << "GRASP ";
-    // for (auto k : final_sol.v) {
-    //     std::cout << k << " ";
-    // }
-    // std::cout << "--> " << final_sol.values.prize << " " << final_sol.values.penalty << std::endl;
     
     return VNS(
         max_seconds,
@@ -766,43 +741,63 @@ int main (int argc, char *argv[]) {
         }
         double p_min = alpha * prizes_sum;
         
-        int running_num = 3; // Número de vezes que a instância será executada para tirar a média 
+        int running_num = 5; // Número de vezes que a instância será executada para tirar a média 
         int iterations_grasp = 4000;
-        int seconds_vns = 10;
+        int seconds_vns = 5;
         double average_time = 0;
         std::chrono::steady_clock::time_point begin;
         std::chrono::steady_clock::time_point end;
-        solution sol;
         
+        solution sol;
+        solution best_sol;
+        solution worst_sol;
+        int best_sol_count = 0;
         for(int i = 0; i < running_num; i++) {
             // Medindo o tempo de execução
             begin = std::chrono::steady_clock::now();
             sol = grasp_vns(iterations_grasp, seconds_vns, prizes, penalties, edges, p_min);
             end = std::chrono::steady_clock::now();
             average_time += ((std::chrono::duration_cast<std::chrono::milliseconds> (end - begin).count()) - (seconds_vns * 1000)) / running_num;
+            
+            if(i == 0){
+                best_sol = sol;
+                worst_sol = sol;
+                best_sol_count = 1;
+                continue;
+            }
+            
+            if(sol.values.penalty == best_sol.values.penalty) {
+                best_sol_count++;
+            } else if(sol.values.penalty < best_sol.values.penalty) {
+                best_sol = sol;
+                best_sol_count = 1;
+            }
+            
+            if(sol.values.penalty > worst_sol.values.penalty) {
+                worst_sol = sol;
+            }
+            
         }
         
-        // std::cout << "VNS+VND ";
-        // for (auto k : sol.v) {
-        //     std::cout << k << " ";
-        // }
-        // std::cout << "--> " << sol.values.prize << " " << sol.values.penalty << std::endl;
-        
-        if (sol.values.prize == prizes[0] && sol.values.penalty == penalties[0]) {
+        if (best_sol.values.prize == prizes[0] && best_sol.values.penalty == penalties[0]) {
             std::cout << "\nNo solution found for the input instance!";
         } else {
             std::cout << ">>> GRASP + VNS and VND\n";
+            std::cout << ">>> BEST SOLUTION\n";
             std::cout << "Number of vertices\n  " << num_vertices << "\n";
             std::cout << "Minimum prize (alpha = " << alpha << ")\n  " << p_min << "\n\n";
 
             std::cout << "Travel\n  ";
-            for (int i = 0; i < sol.v.size() - 1; i++) {
-                std::cout << "(" << sol.v[i] << "," <<sol.v[i+1] << ") ";  
+            for (int i = 0; i < best_sol.v.size() - 1; i++) {
+                std::cout << "(" << best_sol.v[i] << "," <<best_sol.v[i+1] << ") ";  
             }
             std::cout << "\n";
 
-            std::cout << "Total prizes\n  " << sol.values.prize << "\nTotal penalties\n  " << sol.values.penalty << "\n";
+            std::cout << "Total prizes\n  " << best_sol.values.prize << "\nTotal penalties\n  " << best_sol.values.penalty << "\n";
             std::cout << "Average execution time on " << running_num << " executions (ms)\n  " << average_time << std::endl;
+            std::cout << "This solution was achieved on " << best_sol_count << " out of " << running_num << " executions" << std::endl;
+            std::cout << ">>> WORST SOLUTION\n";
+            std::cout << "Total penalties\n " << worst_sol.values.penalty << std::endl;
         }
     
     } else {
