@@ -741,9 +741,9 @@ int main (int argc, char *argv[]) {
         }
         double p_min = alpha * prizes_sum;
         
-        int running_num = 5; // Número de vezes que a instância será executada para tirar a média 
+        int running_num = 20; // Número de vezes que a instância será executada para tirar a média 
         int iterations_grasp = 4000;
-        int seconds_vns = 5;
+        int seconds_vns = 30; // Número de segundos que o VNS com VND ficará sendo executado sem melhora de solução
         double average_time = 0;
         std::chrono::steady_clock::time_point begin;
         std::chrono::steady_clock::time_point end;
