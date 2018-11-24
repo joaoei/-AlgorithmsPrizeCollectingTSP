@@ -1,0 +1,19 @@
+>>> GRASP + VNS and VND
+>>> BEST SOLUTION
+Number of vertices
+  13
+Minimum prize (alpha = 0.8)
+  497.6
+
+Travel
+  (0,12) (12,11) (11,2) (2,6) (6,3) (3,8) (8,9) (9,10) (10,4) (4,5) (5,0) 
+Total prizes
+  534
+Total penalties
+  2542
+Average execution time on 20 executions (ms)
+  2678
+This solution was achieved on 5 out of 20 executions
+>>> WORST SOLUTION
+Total penalties
+ 2774
