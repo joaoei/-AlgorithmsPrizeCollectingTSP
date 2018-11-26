@@ -1,0 +1,17 @@
+THE PROBLEM HAVE 8 NODES AND WAS GENERATED FROM v10.txt
+
+PRIZE ASSOCIATED TO EACH NODES pi -> [1,100]
+   0   39    1   62   77   25   21   54      
+
+PENALTY ASSOCIATED TO EACH NODES gama_i -> [1,750]
+ 1000000  548  475    6  633  489  545  632    
+
+TRAVEL COST BETWEEN THE NODES cij -> [50,1000]
+    0    66   820   889   739   422   261   691   
+   66     0   505    56   397   200   446    97   
+  820   505     0   987    81   426   584   217   
+  889    56   987     0   411   253   258   621   
+  739   397    81   411     0   710   282   980   
+  422   200   426   253   710     0   299   174   
+  261   446   584   258   282   299     0   797   
+  691    97   217   621   980   174   797     0   
