@@ -1,0 +1,19 @@
+>>> GENETIC ALGORITHM
+>>> BEST SOLUTION
+Number of vertices
+  15
+Minimum prize (alpha = 0.2)
+  146.4
+
+Travel
+  (0,12) (12,14) (14,4) (4,8) (8,11) (11,6) (6,2) (2,13) (13,0) 
+Total prizes
+  501
+Total penalties
+  2988
+Average execution time on 50 executions (ms)
+  405
+This solution was achieved on 1 out of 50 executions
+>>> WORST SOLUTION
+Total penalties
+ 3811
