@@ -62,7 +62,7 @@ bool is_on_list (
     return is_element;
 }
 
-bool sort_penalties_desc (solution i, solution j) { 
+bool sort_penalties_asc (solution i, solution j) { 
     return (i.values.penalty < j.values.penalty); 
 }
 
@@ -213,7 +213,7 @@ std::vector<solution> add_step_candidate_list(
     }
     
     if (!solution_candidate_list.empty()) {
-        std::sort(solution_candidate_list.begin(), solution_candidate_list.end(), sort_penalties_desc);
+        std::sort(solution_candidate_list.begin(), solution_candidate_list.end(), sort_penalties_asc);
         if (solution_candidate_list.size() > (prizes.size() / 5)) {
             solution_candidate_list.resize(prizes.size() / 5);
         }
